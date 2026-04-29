@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Financiero 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F3EF;--surface:#FFFFFF;--surface2:#EEECE7;--border:rgba(0,0,0,0.09);--border-strong:rgba(0,0,0,0.15);--text:#1A1916;--text-2:#6B6960;--text-3:#9E9C96;--green:#1A6B4A;--green-light:#E6F2EC;--red:#8B2B1A;--red-light:#F5EAE7;--blue:#1A3F6B;--blue-light:#E6EDF5;--gold:#7A5C1A;--gold-light:#F5EFE0;--radius:10px;--radius-sm:6px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--text);color:#fff;padding:18px 32px;display:flex;align-items:center;justify-content:space-between}
+.header-brand{display:flex;align-items:center;gap:12px}
+.header-logo{width:32px;height:32px;background:var(--gold-light);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.header-title{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.header-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px;font-family:'DM Mono',monospace}
+.header-date{font-size:11px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace}
+.tab-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex}
+.tab-btn{font-size:13px;font-weight:500;padding:14px 20px;border:none;background:none;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab-btn.active{color:var(--text);border-bottom-color:var(--text)}
+.tab-btn:hover:not(.active){color:var(--text)}
+.tab-content{display:none;padding:28px 32px 48px;max-width:1200px}
+.tab-content.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px}
+.metric-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:'DM Mono',monospace}
+.metric-value{font-size:26px;font-weight:600;letter-spacing:-1px;color:var(--text);line-height:1}
+.metric-value.pos{color:var(--green)}.metric-value.neg{color:var(--red)}
+.metric-sub{font-size:11px;color:var(--text-3);margin-top:5px;font-family:'DM Mono',monospace}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px}
+.card-title{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:16px;font-family:'DM Mono',monospace}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.tbl-wrap{overflow-x:auto;max-height:420px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead{position:sticky;top:0;background:var(--surface);z-index:2}
+th{font-size:10px;font-weight:500;color:var(--text-3);text-align:left;padding:0 8px 10px;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em}
+th.r{text-align:right}
+th.asc::after{content:' ↑'}th.desc::after{content:' ↓'}
+td{padding:8px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+td:first-child{padding-left:0}th:first-child{padding-left:0}
+td.r{text-align:right;font-family:'DM Mono',monospace;font-size:12px}
+td.cli{max-width:200px;font-size:12px}
+tr:last-child td{border-bottom:none}
+.tfoot-row td{font-weight:600;border-top:1px solid var(--border-strong);border-bottom:none;background:var(--surface);position:sticky;bottom:0;font-family:'DM Mono',monospace;font-size:12px}
+.no-res{text-align:center;color:var(--text-3);font-size:13px;padding:32px 0}
+.pill{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;display:inline-block;font-family:'DM Mono',monospace}
+.pill-f{background:var(--green-light);color:var(--green)}
+.pill-v{background:var(--red-light);color:var(--red)}
+.pill-bank{background:var(--blue-light);color:var(--blue)}
+.pill-inv{background:var(--gold-light);color:var(--gold)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.filters label{font-size:11px;color:var(--text-3);margin-right:2px;font-family:'DM Mono',monospace}
+select{font-size:12px;padding:6px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-reset{font-size:11px;padding:6px 12px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:transparent;color:var(--text-2);cursor:pointer;font-family:'DM Mono',monospace}
+.btn-reset:hover{background:var(--surface2)}
+.saldo-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.saldo-row:last-child{border-bottom:none}
+.saldo-name{font-size:12px;color:var(--text);width:210px;flex-shrink:0}
+.saldo-bar-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.saldo-bar{height:6px;border-radius:3px}
+.bar-bank{background:var(--blue)}.bar-inv{background:var(--gold)}
+.saldo-val{font-size:12px;font-family:'DM Mono',monospace;color:var(--text);width:90px;text-align:right;flex-shrink:0}
+.saldo-chg{font-size:11px;font-family:'DM Mono',monospace;width:85px;text-align:right;flex-shrink:0}
+.legend{display:flex;gap:16px;margin-bottom:12px}
+.legend span{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2);font-family:'DM Mono',monospace}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+.divider{height:1px;background:var(--border);margin:18px 0}
+
+/* PyG Tab */
+table.pyg{width:100%;border-collapse:collapse;font-size:12px}
+table.pyg th{font-size:9px;font-weight:500;color:var(--text-3);text-align:right;padding:0 8px 8px;border-bottom:1px solid var(--border);white-space:nowrap;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em}
+table.pyg th:first-child{text-align:left;padding-left:0}
+table.pyg td{padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:middle}
+table.pyg td:first-child{padding-left:0;font-size:12px}
+table.pyg td:not(:first-child){text-align:right;font-family:'DM Mono',monospace;font-size:11.5px}
+.pyg-section td{font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;padding-top:12px;padding-bottom:3px;border-bottom:none;font-family:'DM Mono',monospace}
+.pyg-subtotal td{font-weight:600;border-top:1px solid var(--border-strong);border-bottom:1px solid var(--border);background:var(--surface2)}
+.pyg-total td{font-weight:700;border-top:2px solid var(--border-strong);border-bottom:none;font-size:13px;padding-top:10px}
+.pyg-indent{padding-left:14px!important;color:var(--text-2)!important}
+.wf-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
+.wf-row:last-child{border-bottom:none}
+.wf-label{font-size:11px;color:var(--text-2);width:190px;flex-shrink:0}
+.wf-bar-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.wf-bar{height:6px;border-radius:3px}
+.wf-val{font-size:11px;font-family:'DM Mono',monospace;width:80px;text-align:right;flex-shrink:0}
+.wf-pct{font-size:10px;font-family:'DM Mono',monospace;width:42px;text-align:right;color:var(--text-3);flex-shrink:0}
+table.marg{width:100%;border-collapse:collapse;font-size:12px}
+table.marg th{font-size:9px;font-weight:500;color:var(--text-3);padding:0 10px 8px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.05em;text-align:right}
+table.marg th:first-child{text-align:left;padding-left:0}
+table.marg td{padding:8px 10px;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px;text-align:right;vertical-align:middle}
+table.marg td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-size:12px;padding-left:0;color:var(--text-2)}
+table.marg tr:last-child td{border-bottom:none;font-weight:600;color:var(--text)}
+.marg-note{font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;margin-top:10px}
+.chip{font-size:11px;font-weight:500;padding:5px 12px;border-radius:20px;border:1px solid var(--border-strong);background:transparent;color:var(--text-2);cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace}
+.chip:hover{border-color:var(--text);color:var(--text)}
+.chip.active{background:var(--text);border-color:var(--text);color:#fff}
+.chip.comm.active{background:var(--gold);border-color:var(--gold);color:#fff}
+.chip.aapp.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.divider-v{width:1px;height:18px;background:var(--border);margin:0 4px;display:inline-block;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="10" width="3" height="6" rx="1" fill="#7A5C1A"/>
+        <rect x="7.5" y="6" width="3" height="10" rx="1" fill="#7A5C1A"/>
+        <rect x="13" y="2" width="3" height="14" rx="1" fill="#7A5C1A"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Dashboard Financiero</div>
+      <div class="header-sub">Flujo de Caja · CxC · Estado de Resultados · 2026</div>
+    </div>
+  </div>
+  <div class="header-date">Actualizado: 27/04/2026</div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('flujo',this)">Flujo de Caja</button>
+  <button class="tab-btn" onclick="showTab('cxc',this)">Cuentas por Cobrar</button>
+  <button class="tab-btn" onclick="showTab('pyg',this)">Estado de Resultados</button>
+</div>
+
+<!-- ══ TAB 1: FLUJO DE CAJA ══ -->
+<div id="tab-flujo" class="tab-content active">
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Saldo inicial</div>
+      <div class="metric-value">$238.686</div>
+      <div class="metric-sub">Al 01/01/2026</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Saldo final</div>
+      <div class="metric-value">$225.545</div>
+      <div class="metric-sub">Al 27/04/2026</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Variación neta</div>
+      <div class="metric-value neg">-$13.140</div>
+      <div class="metric-sub">SF − SI · cuadrado ✓</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Flujo por centro de costo</div>
+      <table>
+        <thead><tr>
+          <th>CC</th><th class="r">Ingresos</th><th class="r">Egresos</th><th class="r">Flujo</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>MEXICO</td>
+            <td class="r">$0,00</td>
+            <td class="r">$52.007,00</td>
+            <td class="r neg">($52.007,00)</td>
+          </tr>
+          <tr>
+            <td>A2</td>
+            <td class="r">$415.186,60</td>
+            <td class="r">$427.384,29</td>
+            <td class="r neg">($12.197,68)</td>
+          </tr>
+          <tr>
+            <td>A1</td>
+            <td class="r">$455.952,84</td>
+            <td class="r">$404.888,53</td>
+            <td class="r pos">$51.064,31</td>
+          </tr>
+          <tr class="tfoot-row">
+            <td>Total</td>
+            <td class="r">$871.139,44</td>
+            <td class="r">$884.279,82</td>
+            <td class="r neg">($13.140,38)</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="divider"></div>
+      <div class="card-title">Flujo por CC</div>
+      <div style="position:relative;height:150px"><canvas id="ccChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Ingresos vs egresos mensual</div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:var(--green)"></span>Ingresos</span>
+        <span><span class="legend-dot" style="background:var(--red)"></span>Egresos</span>
+      </div>
+      <div style="position:relative;height:210px"><canvas id="monthlyChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">Posición bancaria — saldos al 27/04/2026</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px">
+        <div class="metric-label">Saldo inicial total</div>
+        <div class="metric-value" style="font-size:18px">$238.686</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px">
+        <div class="metric-label">Variación de saldos</div>
+        <div class="metric-value neg" style="font-size:18px">-$13.140</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px">
+        <div class="metric-label">Saldo final total</div>
+        <div class="metric-value" style="font-size:18px">$225.545</div>
+      </div>
+    </div>
+    <div id="saldoBars"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Detalle movimientos por banco</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th>Banco</th>
+          <th class="r">Saldo inicial</th>
+          <th class="r">Ingresos</th>
+          <th class="r">Egresos</th>
+          <th class="r">Saldo final</th>
+          <th class="r">Variación</th>
+        </tr></thead>
+        <tbody id="bancoTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TAB 2: CXC ══ -->
+<div id="tab-cxc" class="tab-content">
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Total CxC</div>
+      <div class="metric-value" id="cxcTotal">—</div>
+      <div class="metric-sub" id="cxcCntTotal">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Vencidas</div>
+      <div class="metric-value neg" id="cxcVenc">—</div>
+      <div class="metric-sub" id="cxcCntVenc">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Futuras</div>
+      <div class="metric-value pos" id="cxcFut">—</div>
+      <div class="metric-sub" id="cxcCntFut">—</div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-title">CxC por mes de emisión</div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:var(--green)"></span>Futura</span>
+        <span><span class="legend-dot" style="background:var(--red)"></span>Vencida</span>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="cxcMesChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Top clientes</div>
+      <div class="legend">
+        <span><span class="legend-dot" style="background:var(--green)"></span>Futura</span>
+        <span><span class="legend-dot" style="background:var(--red)"></span>Vencida</span>
+      </div>
+      <div style="position:relative;height:200px"><canvas id="cxcCliChart"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Detalle de facturas</div>
+    <div class="filters">
+      <div><label>Estado </label>
+        <select id="fEstado"><option value="">Todos</option><option value="Futura">Futura</option><option value="Vencida">Vencida</option></select>
+      </div>
+      <div><label>Mes emisión </label>
+        <select id="fMesEm">
+          <option value="">Todos</option>
+          <option value="12">Diciembre</option><option value="1">Enero</option><option value="2">Febrero</option>
+          <option value="3">Marzo</option><option value="4">Abril</option>
+        </select>
+      </div>
+      <div><label>Mes vencimiento </label>
+        <select id="fMesVen">
+          <option value="">Todos</option>
+          <option value="4">Abril</option><option value="5">Mayo</option>
+          <option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option>
+        </select>
+      </div>
+      <div><label>Cliente </label>
+        <select id="fCliente"><option value="">Todos</option></select>
+      </div>
+      <button class="btn-reset" id="btnReset">↺ Limpiar</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th data-col="no">No.</th>
+          <th data-col="fem">F. Emisión</th>
+          <th data-col="fven">F. Vencimiento</th>
+          <th data-col="cli">Cliente</th>
+          <th data-col="estado" class="r">Estado</th>
+          <th data-col="valor" class="r">Valor</th>
+        </tr></thead>
+        <tbody id="cxcTbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt=v=>'$'+Math.abs(v).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtk=v=>'$'+(v/1000).toFixed(0)+'k';
+const fmtChg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});
+const TC='rgba(0,0,0,0.35)',GC='rgba(0,0,0,0.06)';
+const CGREEN='rgba(26,107,74,0.75)',CRED='rgba(139,43,26,0.75)';
+const MN=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+function showTab(tab,btn){
+  if(tab==='pyg' && !window._pygInited){
+    setTimeout(function(){PYG_initCharts();PYG_render();window._pygInited=true;},50);
+  }
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── FLUJO DATA ──
+const SALDO_DATA=[
+  {banco:'Banco Pichincha',type:'bank',si:47462.89,ing:639396.85,egr:611753.09,sf:75106.65},
+  {banco:'Banco Internacional',type:'bank',si:27292.11,ing:146229.56,egr:144610.58,sf:28911.09},
+  {banco:'Bco. Internacional Ahorro',type:'bank',si:379.58,ing:29787.13,egr:24518.01,sf:5648.70},
+  {banco:'Inv. Fondo Óptimo ANEFI',type:'inv',si:60933.76,ing:445.68,egr:0,sf:61379.44},
+  {banco:'Inv. ANEFI Corto Plazo',type:'inv',si:65922.49,ing:346.39,egr:65000,sf:1268.88},
+  {banco:'Pichincha Cta. Ahorros Ec+',type:'bank',si:36694.87,ing:54133.81,egr:37598.12,sf:53230.56},
+];
+
+const MONTHLY=[
+  {month:1,ing:103868.50,egr:163813.08},
+  {month:2,ing:85723.72,egr:128324.81},
+  {month:3,ing:112490.65,egr:155498.90},
+  {month:4,ing:161360.07,egr:207045.47},
+  {month:5,ing:6828.62,egr:63849.76},
+  {month:6,ing:45429.07,egr:52240.63},
+  {month:7,ing:107987.25,egr:265.92},
+  {month:8,ing:55825.44,egr:20541.50},
+  {month:9,ing:72568.91,egr:64982.63},
+  {month:10,ing:68144.99,egr:16464.26},
+  {month:11,ing:27024.36,egr:10936.61},
+  {month:12,ing:23887.86,egr:316.25},
+];
+
+new Chart(document.getElementById('ccChart'),{
+  type:'bar',
+  data:{labels:['MEXICO','A2','A1'],datasets:[{label:'Flujo',data:[-52007,-12198,51064],
+    backgroundColor:[CRED,CRED,CGREEN],borderRadius:4,borderSkipped:false}]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtChg(c.raw)}}},
+    scales:{x:{ticks:{color:TC,font:{size:11}},grid:{display:false}},
+            y:{ticks:{color:TC,font:{size:10},callback:fmtk},grid:{color:GC},border:{display:false}}}}
+});
+
+new Chart(document.getElementById('monthlyChart'),{
+  type:'bar',
+  data:{labels:MONTHLY.map(m=>MN[m.month]),datasets:[
+    {label:'Ingresos',data:MONTHLY.map(m=>m.ing),backgroundColor:CGREEN,borderRadius:3,borderSkipped:false},
+    {label:'Egresos',data:MONTHLY.map(m=>m.egr),backgroundColor:CRED,borderRadius:3,borderSkipped:false}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)}}},
+    scales:{x:{ticks:{color:TC,font:{size:10}},grid:{display:false}},
+            y:{ticks:{color:TC,font:{size:10},callback:fmtk},grid:{color:GC},border:{display:false}}}}
+});
+
+const maxSF=Math.max(...SALDO_DATA.map(d=>d.sf));
+const barsEl=document.getElementById('saldoBars');
+SALDO_DATA.forEach(d=>{
+  const pct=(d.sf/maxSF*100).toFixed(1),chg=d.sf-d.si;
+  barsEl.innerHTML+=`<div class="saldo-row">
+    <div class="saldo-name">${d.banco} <span class="pill ${d.type==='inv'?'pill-inv':'pill-bank'}">${d.type==='inv'?'inv.':'banco'}</span></div>
+    <div class="saldo-bar-wrap"><div class="saldo-bar ${d.type==='inv'?'bar-inv':'bar-bank'}" style="width:${pct}%"></div></div>
+    <div class="saldo-val">${fmt(d.sf)}</div>
+    <div class="saldo-chg ${chg>=0?'pos':'neg'}">${fmtChg(chg)}</div>
+  </div>`;
+});
+
+const bt=document.getElementById('bancoTbody');
+let tSI=0,tING=0,tEGR=0,tSF=0;
+SALDO_DATA.forEach(d=>{
+  const chg=d.sf-d.si;
+  bt.innerHTML+=`<tr><td>${d.banco}</td><td class="r">${fmt(d.si)}</td><td class="r pos">${fmt(d.ing)}</td><td class="r neg">${fmt(d.egr)}</td><td class="r" style="font-weight:500">${fmt(d.sf)}</td><td class="r ${chg>=0?'pos':'neg'}">${fmtChg(chg)}</td></tr>`;
+  tSI+=d.si;tING+=d.ing;tEGR+=d.egr;tSF+=d.sf;
+});
+bt.innerHTML+=`<tr class="tfoot-row"><td>Total</td><td class="r">${fmt(tSI)}</td><td class="r">${fmt(tING)}</td><td class="r">${fmt(tEGR)}</td><td class="r">${fmt(tSF)}</td><td class="r neg">${fmtChg(tSF-tSI)}</td></tr>`;
+
+// ── CXC DATA ──
+const CXC=[{"no":5702,"fem":"21/04/2026","fven":"20/06/2026","cliente":"AC BEBIDAS ECUADOR ACBE CIA.LTDA.","valor":1114.35,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-20","fem_iso":"2026-04-21"},{"no":5694,"fem":"15/04/2026","fven":"14/06/2026","cliente":"AJECUADOR S.A.","valor":2487.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-14","fem_iso":"2026-04-15"},{"no":5629,"fem":"16/03/2026","fven":"30/04/2026","cliente":"AJECUADOR S.A.","valor":2487.5,"estado":"Futura","mes_emision":3,"mes_vencimiento":4,"fven_iso":"2026-04-30","fem_iso":"2026-03-16"},{"no":5580,"fem":"03/03/2026","fven":"03/03/2026","cliente":"ASOCIACION DE EXPORTADORES DE BANANO DEL ECUADOR AEBE","valor":1380.0,"estado":"Vencida","mes_emision":3,"mes_vencimiento":3,"fven_iso":"2026-03-03","fem_iso":"2026-03-03"},{"no":5578,"fem":"03/03/2026","fven":"02/05/2026","cliente":"ASOCIACION DE INDUSTRIAS DE BEBIDAS NO ALCOHOLICAS DEL ECUADOR AIBE","valor":2300.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-02","fem_iso":"2026-03-03"},{"no":5648,"fem":"01/04/2026","fven":"31/05/2026","cliente":"ASOCIACION DE INDUSTRIAS DE BEBIDAS NO ALCOHOLICAS DEL ECUADOR AIBE","valor":2300.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-31","fem_iso":"2026-04-01"},{"no":5520,"fem":"02/02/2026","fven":"03/04/2026","cliente":"ASOCIACION DE INDUSTRIAS DE BEBIDAS NO ALCOHOLICAS DEL ECUADOR AIBE","valor":2300.0,"estado":"Vencida","mes_emision":2,"mes_vencimiento":4,"fven_iso":"2026-04-03","fem_iso":"2026-02-02"},{"no":5650,"fem":"01/04/2026","fven":"01/05/2026","cliente":"BANCO GUAYAQUIL S.A.","valor":4255.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-01","fem_iso":"2026-04-01"},{"no":5634,"fem":"20/03/2026","fven":"18/06/2026","cliente":"BAXTER ECUADOR S.A.","valor":11343.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":6,"fven_iso":"2026-06-18","fem_iso":"2026-03-20"},{"no":5640,"fem":"01/04/2026","fven":"30/06/2026","cliente":"BAXTER ECUADOR S.A.","valor":5671.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-30","fem_iso":"2026-04-01"},{"no":5639,"fem":"01/04/2026","fven":"01/05/2026","cliente":"BOEHRINGER INGELHEIM DEL ECUADOR CIA. LTDA.","valor":4577.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-01","fem_iso":"2026-04-01"},{"no":5613,"fem":"04/03/2026","fven":"03/04/2026","cliente":"CERRO-QUEBRADO S.A.","valor":995.0,"estado":"Vencida","mes_emision":3,"mes_vencimiento":4,"fven_iso":"2026-04-03","fem_iso":"2026-03-04"},{"no":5679,"fem":"09/04/2026","fven":"09/05/2026","cliente":"CERRO-QUEBRADO S.A.","valor":995.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-09","fem_iso":"2026-04-09"},{"no":5680,"fem":"10/04/2026","fven":"10/05/2026","cliente":"CERVECERÍA NACIONAL CN S.A.","valor":2842.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-10","fem_iso":"2026-04-10"},{"no":5673,"fem":"07/04/2026","fven":"06/06/2026","cliente":"EQUIFAX ECUADOR C.A. BURÓ DE INFORMACIÓN CREDITICIA C.A.","valor":2233.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-06","fem_iso":"2026-04-07"},{"no":5670,"fem":"02/04/2026","fven":"01/06/2026","cliente":"EQUISUIZA SEGUROS S.A.","valor":2131.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-01","fem_iso":"2026-04-02"},{"no":5671,"fem":"02/04/2026","fven":"01/06/2026","cliente":"EQUISUIZA SEGUROS S.A.","valor":253.75,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-01","fem_iso":"2026-04-02"},{"no":5662,"fem":"01/04/2026","fven":"01/05/2026","cliente":"EXPLORACIONES NOVOMINING S.A","valor":9950.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-01","fem_iso":"2026-04-01"},{"no":5660,"fem":"01/04/2026","fven":"01/05/2026","cliente":"FARMACIAS Y COMISARIATOS DE MEDICINAS S.A. FARCOMED","valor":1776.25,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-01","fem_iso":"2026-04-01"},{"no":5592,"fem":"03/03/2026","fven":"02/04/2026","cliente":"FARMACIAS Y COMISARIATOS DE MEDICINAS S.A. FARCOMED","valor":2012.5,"estado":"Vencida","mes_emision":3,"mes_vencimiento":4,"fven_iso":"2026-04-02","fem_iso":"2026-03-03"},{"no":5657,"fem":"01/04/2026","fven":"01/05/2026","cliente":"FARMAENLACE CIA. LTDA.","valor":406.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-01","fem_iso":"2026-04-01"},{"no":5672,"fem":"07/04/2026","fven":"05/08/2026","cliente":"HOLCIM ECUADOR S A","valor":2487.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":8,"fven_iso":"2026-08-05","fem_iso":"2026-04-07"},{"no":5477,"fem":"06/01/2026","fven":"06/05/2026","cliente":"HOLCIM ECUADOR S A","valor":2537.5,"estado":"Futura","mes_emision":1,"mes_vencimiento":5,"fven_iso":"2026-05-06","fem_iso":"2026-01-06"},{"no":5542,"fem":"09/02/2026","fven":"09/06/2026","cliente":"HOLCIM ECUADOR S A","valor":2537.5,"estado":"Futura","mes_emision":2,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-02-09"},{"no":5627,"fem":"13/03/2026","fven":"11/07/2026","cliente":"HOLCIM ECUADOR S A","valor":2487.5,"estado":"Futura","mes_emision":3,"mes_vencimiento":7,"fven_iso":"2026-07-11","fem_iso":"2026-03-13"},{"no":5659,"fem":"01/04/2026","fven":"16/05/2026","cliente":"INDUSTRIAS LACTEAS TONI SA","valor":1351.25,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-16","fem_iso":"2026-04-01"},{"no":5566,"fem":"18/02/2026","fven":"19/05/2026","cliente":"LATAM-Airlines Ecuador","valor":2030.0,"estado":"Futura","mes_emision":2,"mes_vencimiento":5,"fven_iso":"2026-05-19","fem_iso":"2026-02-18"},{"no":5703,"fem":"24/04/2026","fven":"23/07/2026","cliente":"LATAM-Airlines Ecuador","valor":2300.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":7,"fven_iso":"2026-07-23","fem_iso":"2026-04-24"},{"no":5667,"fem":"01/04/2026","fven":"31/05/2026","cliente":"MODERNA ALIMENTOS S.A.","valor":625.24,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-31","fem_iso":"2026-04-01"},{"no":5699,"fem":"20/04/2026","fven":"19/06/2026","cliente":"MODERNA ALIMENTOS S.A.","valor":625.24,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-19","fem_iso":"2026-04-20"},{"no":5600,"fem":"03/03/2026","fven":"02/05/2026","cliente":"MODERNA ALIMENTOS S.A.","valor":1928.5,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-02","fem_iso":"2026-03-03"},{"no":5601,"fem":"03/03/2026","fven":"02/05/2026","cliente":"MODERNA ALIMENTOS S.A.","valor":4232.55,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-02","fem_iso":"2026-03-03"},{"no":5641,"fem":"01/04/2026","fven":"31/05/2026","cliente":"MODERNA ALIMENTOS S.A.","valor":1928.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-31","fem_iso":"2026-04-01"},{"no":5642,"fem":"01/04/2026","fven":"31/05/2026","cliente":"MODERNA ALIMENTOS S.A.","valor":4232.55,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-31","fem_iso":"2026-04-01"},{"no":5614,"fem":"04/03/2026","fven":"03/05/2026","cliente":"MONDELEZ ECUADOR C. LTDA","valor":1897.5,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-03","fem_iso":"2026-03-04"},{"no":5636,"fem":"24/03/2026","fven":"23/05/2026","cliente":"MUNDO DEPORTIVO MEDEPORT S.A.","valor":3184.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-23","fem_iso":"2026-03-24"},{"no":5692,"fem":"14/04/2026","fven":"13/06/2026","cliente":"MUNDO DEPORTIVO MEDEPORT S.A.","valor":1393.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-13","fem_iso":"2026-04-14"},{"no":5693,"fem":"14/04/2026","fven":"13/06/2026","cliente":"MUNDO DEPORTIVO MEDEPORT S.A.","valor":1393.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-13","fem_iso":"2026-04-14"},{"no":5696,"fem":"16/04/2026","fven":"15/06/2026","cliente":"MUNDO DEPORTIVO MEDEPORT S.A.","valor":1492.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-15","fem_iso":"2026-04-16"},{"no":5698,"fem":"17/04/2026","fven":"16/06/2026","cliente":"NESTLE ECUADOR SA","valor":3142.8,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-16","fem_iso":"2026-04-17"},{"no":5630,"fem":"17/03/2026","fven":"16/05/2026","cliente":"NESTLE ECUADOR SA","valor":3142.8,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-16","fem_iso":"2026-03-17"},{"no":5561,"fem":"18/02/2026","fven":"19/04/2026","cliente":"NESTLE ECUADOR SA","valor":3726.0,"estado":"Vencida","mes_emision":2,"mes_vencimiento":4,"fven_iso":"2026-04-19","fem_iso":"2026-02-18"},{"no":5604,"fem":"03/03/2026","fven":"03/03/2026","cliente":"PFIZER CIA . LTDA.","valor":2487.5,"estado":"Vencida","mes_emision":3,"mes_vencimiento":3,"fven_iso":"2026-03-03","fem_iso":"2026-03-03"},{"no":5643,"fem":"01/04/2026","fven":"30/06/2026","cliente":"PFIZER CIA . LTDA.","valor":2487.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-30","fem_iso":"2026-04-01"},{"no":5697,"fem":"16/04/2026","fven":"15/07/2026","cliente":"PFIZER CIA . LTDA.","valor":4975.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":7,"fven_iso":"2026-07-15","fem_iso":"2026-04-16"},{"no":5695,"fem":"15/04/2026","fven":"14/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":14.55,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-14","fem_iso":"2026-04-15"},{"no":5621,"fem":"11/03/2026","fven":"10/05/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":2030.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-10","fem_iso":"2026-03-11"},{"no":5688,"fem":"13/04/2026","fven":"12/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":5117.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-12","fem_iso":"2026-04-13"},{"no":5689,"fem":"13/04/2026","fven":"12/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":5807.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-12","fem_iso":"2026-04-13"},{"no":5690,"fem":"13/04/2026","fven":"12/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":392.84,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-12","fem_iso":"2026-04-13"},{"no":5691,"fem":"13/04/2026","fven":"12/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":2300.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-12","fem_iso":"2026-04-13"},{"no":5681,"fem":"10/04/2026","fven":"09/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":252.86,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-04-10"},{"no":5682,"fem":"10/04/2026","fven":"09/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":242.71,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-04-10"},{"no":5683,"fem":"10/04/2026","fven":"09/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":478.88,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-04-10"},{"no":5684,"fem":"10/04/2026","fven":"09/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":1938.65,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-04-10"},{"no":236,"fem":"10/04/2026","fven":"09/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":2519.56,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-04-10"},{"no":237,"fem":"10/04/2026","fven":"09/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":2726.95,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-04-10"},{"no":238,"fem":"10/04/2026","fven":"09/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":5417.3,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-09","fem_iso":"2026-04-10"},{"no":239,"fem":"13/04/2026","fven":"12/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":2260.34,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-12","fem_iso":"2026-04-13"},{"no":240,"fem":"15/04/2026","fven":"14/06/2026","cliente":"PLUSPETROL ECUADOR B.V.","valor":145.52,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-14","fem_iso":"2026-04-15"},{"no":5637,"fem":"24/03/2026","fven":"08/05/2026","cliente":"PROCESADORA NACIONAL DE ALIMENTOS C.A. PRONACA","valor":2030.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-08","fem_iso":"2026-03-24"},{"no":5567,"fem":"19/02/2026","fven":"05/04/2026","cliente":"PROCESADORA NACIONAL DE ALIMENTOS C.A. PRONACA","valor":2035.0,"estado":"Vencida","mes_emision":2,"mes_vencimiento":4,"fven_iso":"2026-04-05","fem_iso":"2026-02-19"},{"no":5605,"fem":"03/03/2026","fven":"02/05/2026","cliente":"QUALA ECUADOR S.A.","valor":812.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-02","fem_iso":"2026-03-03"},{"no":5644,"fem":"01/04/2026","fven":"31/05/2026","cliente":"QUALA ECUADOR S.A.","valor":812.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-31","fem_iso":"2026-04-01"},{"no":5597,"fem":"03/03/2026","fven":"02/05/2026","cliente":"SHELL OPERACIONES PERÚ S.A.C.","valor":840.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-02","fem_iso":"2026-03-03"},{"no":5381,"fem":"01/12/2025","fven":"30/01/2026","cliente":"SHELL OPERACIONES PERÚ S.A.C.","valor":840.0,"estado":"Vencida","mes_emision":12,"mes_vencimiento":1,"fven_iso":"2026-01-30","fem_iso":"2025-12-01"},{"no":5471,"fem":"05/01/2026","fven":"06/03/2026","cliente":"SHELL OPERACIONES PERÚ S.A.C.","valor":840.0,"estado":"Vencida","mes_emision":1,"mes_vencimiento":3,"fven_iso":"2026-03-06","fem_iso":"2026-01-05"},{"no":5685,"fem":"13/04/2026","fven":"12/06/2026","cliente":"SHELL OPERACIONES PERÚ S.A.C.","valor":840.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-12","fem_iso":"2026-04-13"},{"no":5663,"fem":"01/04/2026","fven":"31/05/2026","cliente":"SUPERDEPORTE S.A","valor":2487.5,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-31","fem_iso":"2026-04-01"},{"no":5664,"fem":"01/04/2026","fven":"31/05/2026","cliente":"SUPERDEPORTE S.A","valor":2189.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-31","fem_iso":"2026-04-01"},{"no":5469,"fem":"05/01/2026","fven":"06/03/2026","cliente":"SUPERDEPORTE S.A","valor":2537.5,"estado":"Vencida","mes_emision":1,"mes_vencimiento":3,"fven_iso":"2026-03-06","fem_iso":"2026-01-05"},{"no":5535,"fem":"02/02/2026","fven":"03/04/2026","cliente":"SUPERDEPORTE S.A","valor":2537.5,"estado":"Vencida","mes_emision":2,"mes_vencimiento":4,"fven_iso":"2026-04-03","fem_iso":"2026-02-02"},{"no":5536,"fem":"02/02/2026","fven":"03/04/2026","cliente":"SUPERDEPORTE S.A","valor":2233.0,"estado":"Vencida","mes_emision":2,"mes_vencimiento":4,"fven_iso":"2026-04-03","fem_iso":"2026-02-02"},{"no":5595,"fem":"03/03/2026","fven":"02/05/2026","cliente":"SUPERDEPORTE S.A","valor":2487.5,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-02","fem_iso":"2026-03-03"},{"no":5596,"fem":"03/03/2026","fven":"02/05/2026","cliente":"SUPERDEPORTE S.A","valor":2189.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-02","fem_iso":"2026-03-03"},{"no":5645,"fem":"01/04/2026","fven":"01/05/2026","cliente":"SYNLAB S.A.S.","valor":746.25,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-01","fem_iso":"2026-04-01"},{"no":5666,"fem":"01/04/2026","fven":"01/05/2026","cliente":"TEOJAMA COMERCIAL S.A.","valor":2149.2,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-01","fem_iso":"2026-04-01"},{"no":5647,"fem":"01/04/2026","fven":"01/04/2026","cliente":"TERMINAL DE CARGAS DEL ECUADOR S.A. TERMICARGA","valor":1840.0,"estado":"Vencida","mes_emision":4,"mes_vencimiento":4,"fven_iso":"2026-04-01","fem_iso":"2026-04-01"},{"no":5677,"fem":"08/04/2026","fven":"08/05/2026","cliente":"UNACEM ECUADOR S.A","valor":1015.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-08","fem_iso":"2026-04-08"},{"no":5631,"fem":"20/03/2026","fven":"19/05/2026","cliente":"VENTURA INTERNATIONAL LIMITED","valor":540.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-19","fem_iso":"2026-03-20"},{"no":5632,"fem":"20/03/2026","fven":"19/05/2026","cliente":"VENTURA INTERNATIONAL LIMITED","valor":907.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-19","fem_iso":"2026-03-20"},{"no":5700,"fem":"21/04/2026","fven":"20/06/2026","cliente":"VENTURA INTERNATIONAL LIMITED","valor":907.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-20","fem_iso":"2026-04-21"},{"no":5701,"fem":"21/04/2026","fven":"20/06/2026","cliente":"VISA INTERNATIONAL SERVICE ASSOCIATION","valor":3450.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":6,"fven_iso":"2026-06-20","fem_iso":"2026-04-21"},{"no":5635,"fem":"24/03/2026","fven":"23/05/2026","cliente":"VISA INTERNATIONAL SERVICE ASSOCIATION","valor":3450.0,"estado":"Futura","mes_emision":3,"mes_vencimiento":5,"fven_iso":"2026-05-23","fem_iso":"2026-03-24"},{"no":5686,"fem":"13/04/2026","fven":"13/05/2026","cliente":"VITAPRO ECUADOR CIA.LTDA.","valor":2100.0,"estado":"Futura","mes_emision":4,"mes_vencimiento":5,"fven_iso":"2026-05-13","fem_iso":"2026-04-13"}];
+
+const fCli=document.getElementById('fCliente');
+[...new Set(CXC.map(r=>r.cliente))].sort().forEach(c=>{
+  const o=document.createElement('option');o.value=c;
+  o.textContent=c.length>45?c.slice(0,45)+'…':c;fCli.appendChild(o);
+});
+
+const byM={};
+CXC.forEach(r=>{const m=r.mes_emision;if(!byM[m])byM[m]={f:0,v:0};byM[m][r.estado==='Futura'?'f':'v']+=r.valor;});
+const mKeys=Object.keys(byM).sort((a,b)=>a-b);
+new Chart(document.getElementById('cxcMesChart'),{
+  type:'bar',
+  data:{labels:mKeys.map(m=>MN[m]),datasets:[
+    {label:'Futura',data:mKeys.map(m=>byM[m].f),backgroundColor:CGREEN,borderRadius:3,borderSkipped:false},
+    {label:'Vencida',data:mKeys.map(m=>byM[m].v),backgroundColor:CRED,borderRadius:3,borderSkipped:false}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)}}},
+    scales:{x:{ticks:{color:TC,font:{size:11}},grid:{display:false}},y:{ticks:{color:TC,font:{size:10},callback:fmtk},grid:{color:GC},border:{display:false}}}}
+});
+
+const byCli={};
+CXC.forEach(r=>{if(!byCli[r.cliente])byCli[r.cliente]={f:0,v:0};byCli[r.cliente][r.estado==='Futura'?'f':'v']+=r.valor;});
+const topCli=Object.entries(byCli).sort((a,b)=>(b[1].f+b[1].v)-(a[1].f+a[1].v)).slice(0,10);
+new Chart(document.getElementById('cxcCliChart'),{
+  type:'bar',
+  data:{labels:topCli.map(([c])=>c.length>22?c.slice(0,22)+'…':c),datasets:[
+    {label:'Futura',data:topCli.map(([,v])=>v.f),backgroundColor:CGREEN,borderRadius:3,borderSkipped:false},
+    {label:'Vencida',data:topCli.map(([,v])=>v.v),backgroundColor:CRED,borderRadius:3,borderSkipped:false}
+  ]},
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.raw)}}},
+    scales:{x:{ticks:{color:TC,font:{size:10},callback:fmtk},grid:{color:GC},border:{display:false}},y:{ticks:{color:TC,font:{size:9.5}},grid:{display:false}}}}
+});
+
+let sortCol='fven_iso',sortDir=1;
+function getFiltered(){
+  const est=document.getElementById('fEstado').value;
+  const mEm=document.getElementById('fMesEm').value;
+  const mVen=document.getElementById('fMesVen').value;
+  const cli=document.getElementById('fCliente').value;
+  return CXC.filter(r=>{
+    if(est&&r.estado!==est)return false;
+    if(mEm&&r.mes_emision!=parseInt(mEm))return false;
+    if(mVen&&r.mes_vencimiento!=parseInt(mVen))return false;
+    if(cli&&r.cliente!==cli)return false;
+    return true;
+  });
+}
+function renderCxc(){
+  const CM={no:'no',fem:'fem_iso',fven:'fven_iso',cli:'cliente',estado:'estado',valor:'valor'};
+  const data=getFiltered().sort((a,b)=>{let va=a[sortCol],vb=b[sortCol];return typeof va==='string'?va.localeCompare(vb)*sortDir:(va-vb)*sortDir;});
+  const tbody=document.getElementById('cxcTbody');
+  tbody.innerHTML='';
+  let sv=0,sf=0,cv=0,cf=0,tot=0;
+  if(!data.length){tbody.innerHTML=`<tr><td colspan="6" class="no-res">Sin resultados</td></tr>`;return;}
+  data.forEach(r=>{
+    const ec=r.estado==='Futura'?'pill-f':'pill-v',vc=r.estado==='Futura'?'pos':'neg';
+    tbody.innerHTML+=`<tr><td style="font-family:'DM Mono',monospace;font-size:12px">${r.no}</td><td>${r.fem}</td><td>${r.fven}</td><td class="cli">${r.cliente}</td><td class="r"><span class="pill ${ec}">${r.estado}</span></td><td class="r ${vc}">${fmt(r.valor)}</td></tr>`;
+    tot+=r.valor;
+    if(r.estado==='Vencida'){sv+=r.valor;cv++;}else{sf+=r.valor;cf++;}
+  });
+  tbody.innerHTML+=`<tr class="tfoot-row"><td colspan="5">Total — ${data.length} factura${data.length!==1?'s':''}</td><td class="r">${fmt(tot)}</td></tr>`;
+  document.getElementById('cxcTotal').textContent=fmt(tot);
+  document.getElementById('cxcCntTotal').textContent=data.length+' factura'+(data.length!==1?'s':'');
+  document.getElementById('cxcVenc').textContent=fmt(sv);
+  document.getElementById('cxcCntVenc').textContent=cv+' factura'+(cv!==1?'s':'');
+  document.getElementById('cxcFut').textContent=fmt(sf);
+  document.getElementById('cxcCntFut').textContent=cf+' factura'+(cf!==1?'s':'');
+}
+document.querySelectorAll('th[data-col]').forEach(th=>{
+  const CM={no:'no',fem:'fem_iso',fven:'fven_iso',cli:'cliente',estado:'estado',valor:'valor'};
+  th.addEventListener('click',()=>{
+    const col=CM[th.dataset.col];
+    sortCol===col?sortDir*=-1:(sortCol=col,sortDir=1);
+    document.querySelectorAll('th').forEach(t=>t.classList.remove('asc','desc'));
+    th.classList.add(sortDir===1?'asc':'desc');
+    renderCxc();
+  });
+});
+['fEstado','fMesEm','fMesVen','fCliente'].forEach(id=>document.getElementById(id).addEventListener('change',renderCxc));
+document.getElementById('btnReset').addEventListener('click',()=>{
+  ['fEstado','fMesEm','fMesVen','fCliente'].forEach(id=>document.getElementById(id).value='');
+  renderCxc();
+});
+renderCxc();
+</script>
+
+<!-- TAB 3: ESTADO DE RESULTADOS -->
+<div id="tab-pyg" class="tab-content">
+  <div id="pyg-filter-bar" style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 32px 12px;margin:-28px -32px 24px;display:flex;flex-direction:column;gap:8px">
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:'DM Mono',monospace;min-width:60px">Período</span>
+      <button class="chip pyg-mes active" onclick="PYG_setMes(0,this)">Acumulado</button>
+      <button class="chip pyg-mes" onclick="PYG_setMes(1,this)">Enero</button>
+      <button class="chip pyg-mes" onclick="PYG_setMes(2,this)">Febrero</button>
+      <button class="chip pyg-mes" onclick="PYG_setMes(3,this)">Marzo</button>
+      <div style="width:1px;height:18px;background:var(--border);margin:0 4px;display:inline-block;vertical-align:middle"></div>
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:'DM Mono',monospace;min-width:60px">CC</span>
+      <button class="chip pyg-cc active" onclick="PYG_setCC('TOTAL',this)">Consolidado</button>
+      <button class="chip pyg-cc comm" onclick="PYG_setCC('COMUNICACION',this)">Comunicación</button>
+      <button class="chip pyg-cc aapp" onclick="PYG_setCC('ASUNTOS PUBLICOS',this)">Asuntos Públicos</button>
+      <span style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;margin-left:auto">Provisión imp: 33,34%</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:'DM Mono',monospace;min-width:60px">Negocio</span>
+      <button class="chip pyg-tipo active" onclick="PYG_setTipo('todo',this)">Todo</button>
+      <button class="chip pyg-tipo" onclick="PYG_setTipo('fija',this)">Base fija</button>
+      <button class="chip pyg-tipo" onclick="PYG_setTipo('especial',this)">Proyectos especiales</button>
+      <div style="width:1px;height:18px;background:var(--border);margin:0 4px;display:inline-block;vertical-align:middle"></div>
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);font-family:'DM Mono',monospace;min-width:60px">Desglose</span>
+      <button class="chip pyg-det active" data-det="todos" onclick="PYG_setDet('todos',this)">Todos</button>
+      <button class="chip pyg-det" data-det="A1" onclick="PYG_setDet('A1',this)">A1 · Com. Base</button>
+      <button class="chip pyg-det" data-det="A2" onclick="PYG_setDet('A2',this)">A2 · AAPP Base</button>
+      <button class="chip pyg-det" data-det="A10" onclick="PYG_setDet('A10',this)">A10 · Proy. Com.</button>
+      <button class="chip pyg-det" data-det="A11" onclick="PYG_setDet('A11',this)">A11 · Proy. AAPP</button>
+      <button class="chip pyg-det" data-det="A13" onclick="PYG_setDet('A13',this)">A13 · Enc. Fiduciario</button>
+    </div>
+  </div>
+  
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Ingresos</div>
+      <div class="metric-value gold" id="kIng">—</div>
+      <div class="metric-sub" id="kIngSub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Costo ventas</div>
+      <div class="metric-value" id="kCosto">—</div>
+      <div class="metric-sub" id="kCostoSub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Margen bruto</div>
+      <div class="metric-value" id="kMB">—</div>
+      <div id="kMBPill" class="pill">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Gastos operativos</div>
+      <div class="metric-value" id="kGasto">—</div>
+      <div class="metric-sub" id="kGastoSub">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Utilidad antes imp.</div>
+      <div class="metric-value" id="kRes">—</div>
+      <div id="kResPill" class="pill">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Utilidad neta</div>
+      <div class="metric-value" id="kUN">—</div>
+      <div class="metric-sub" id="kUNSub">—</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Estado de resultados detallado</div>
+        <div id="pygBadge" style="font-size:10px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:5px;background:var(--surface2);color:var(--text-2)">Consolidado</div>
+      </div>
+      <div style="overflow-x:auto"><table class="pyg" id="pygTable"></table></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:13px">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Evolución mensual</div>
+          <div class="legend">
+            <span><span class="ldot" style="background:var(--gold)"></span>Ingresos</span>
+            <span><span class="ldot" style="background:var(--green)"></span>M. bruto</span>
+            <span><span class="ldot" style="background:var(--red)"></span>Gastos</span>
+          </div>
+        </div>
+        <div style="position:relative;height:190px"><canvas id="pyg_evChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Resultado antes impuestos · mensual</div>
+        </div>
+        <div style="position:relative;height:100px"><canvas id="pyg_resChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Composición gastos operativos</div></div>
+      <div id="gastosWF"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Comunicación vs Asuntos Públicos</div>
+        <div class="legend">
+          <span><span class="ldot" style="background:var(--gold)"></span>Com.</span>
+          <span><span class="ldot" style="background:var(--blue)"></span>AAPP</span>
+        </div>
+      </div>
+      <div style="position:relative;height:180px"><canvas id="pyg_ccChart"></canvas></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px" id="ccMini"></div>
+    </div>
+  </div>
+
+  <!-- MARGIN TABLE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Análisis de márgenes</div>
+      <div style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">% sobre ingresos de cada período</div>
+    </div>
+    <div style="overflow-x:auto"><table class="marg" id="margTable"></table></div>
+    <div class="marg-note">* El impuesto es una provisión corporativa (33,34% sobre resultado consolidado positivo del período). A nivel de centro de costo se muestra el resultado antes de impuestos, ya que el impuesto no es atribuible a un CC específico.</div>
+  </div>
+
+</div>
+
+
+</div>
+
+<script>
+
+// ── PYG_RAW MONTHLY DATA (desde el sistema, 100% dinámico) ──
+const PYG_RAW = [
+  {month:1,cc:'A1', grupo:'COMUNICACION',  tipo:'fija',     ing:46468.99, costo:1160.80,  mb:45308.19, nom:25349.73,inst:4037.14,viaj:254.21, gest:0,    serv:25192.96,otros:1829.80, gastos:56663.84,res:-11355.65},
+  {month:1,cc:'A2', grupo:'ASUNTOS PUBLICOS',tipo:'fija',   ing:78031.51, costo:12502.37, mb:65529.14, nom:22040.51,inst:3170.17,viaj:138.76, gest:0,    serv:27137.08,otros:1954.68, gastos:54441.20,res:11087.94},
+  {month:1,cc:'A10',grupo:'COMUNICACION',  tipo:'especial', ing:517.40,   costo:4091.60,  mb:-3574.20, nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:-3574.20},
+  {month:1,cc:'A11',grupo:'ASUNTOS PUBLICOS',tipo:'especial',ing:3000.00, costo:0,        mb:3000.00,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:3000.00},
+  {month:1,cc:'A13',grupo:'ASUNTOS PUBLICOS',tipo:'especial',ing:4000.41, costo:0,        mb:4000.41,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:2.52,    gastos:2.52,    res:3997.89},
+  {month:2,cc:'A1', grupo:'COMUNICACION',  tipo:'fija',     ing:51797.27, costo:1904.00,  mb:49893.27, nom:26039.67,inst:3016.21,viaj:2257.47,gest:43.16,serv:23017.55,otros:2180.23, gastos:56554.29,res:-6661.02},
+  {month:2,cc:'A2', grupo:'ASUNTOS PUBLICOS',tipo:'fija',   ing:77809.79, costo:12004.00, mb:65805.79, nom:29572.07,inst:2696.95,viaj:2278.74,gest:43.15,serv:21705.71,otros:2296.55, gastos:58593.17,res:7212.62},
+  {month:2,cc:'A10',grupo:'COMUNICACION',  tipo:'especial', ing:22708.00, costo:18954.01, mb:3753.99,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:3753.99},
+  {month:2,cc:'A11',grupo:'ASUNTOS PUBLICOS',tipo:'especial',ing:3000.00, costo:1000.00,  mb:2000.00,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:2000.00},
+  {month:2,cc:'A13',grupo:'ASUNTOS PUBLICOS',tipo:'especial',ing:4000.00, costo:550.00,   mb:3450.00,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:3450.00},
+  {month:3,cc:'A1', grupo:'COMUNICACION',  tipo:'fija',     ing:51610.00, costo:600.00,   mb:51010.00, nom:25842.67,inst:3864.65,viaj:1055.88,gest:0,    serv:23492.44,otros:2146.47, gastos:56402.11,res:-5392.11},
+  {month:3,cc:'A2', grupo:'ASUNTOS PUBLICOS',tipo:'fija',   ing:70322.50, costo:12196.99, mb:58125.51, nom:25084.68,inst:3562.89,viaj:1000.12,gest:0,    serv:22770.86,otros:2610.42, gastos:55028.97,res:3096.54},
+  {month:3,cc:'A10',grupo:'COMUNICACION',  tipo:'especial', ing:20340.98, costo:11329.45, mb:9011.53,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:9011.53},
+  {month:3,cc:'A11',grupo:'ASUNTOS PUBLICOS',tipo:'especial',ing:3000.00, costo:1000.00,  mb:2000.00,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:2000.00},
+  {month:3,cc:'A13',grupo:'ASUNTOS PUBLICOS',tipo:'especial',ing:4000.00, costo:275.00,   mb:3725.00,  nom:0,       inst:0,      viaj:0,      gest:0,    serv:0,       otros:0,       gastos:0,       res:3725.00},
+];
+
+const PYG_TAX = 0.3334;
+const PYG_MONTHS = [1,2,3];
+const PYG_MN = {1:'Enero',2:'Febrero',3:'Marzo'};
+const PYG_MNS = {1:'Ene',2:'Feb',3:'Mar'};
+const PYG_TC='rgba(0,0,0,0.35)', PYG_GC='rgba(0,0,0,0.06)';
+
+// ── HELPERS ──
+const PYG_fmt = v => (v<0?'(':'') + '$' + Math.abs(v).toLocaleString('es-EC',{minimumFractionDigits:0,maximumFractionDigits:0}) + (v<0?')':'');
+const PYG_fmtD = v => (v<0?'(':'') + '$' + Math.abs(v).toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2}) + (v<0?')':'');
+const PYG_fmtk = v => '$'+(Math.abs(v)/1000).toFixed(0)+'k';
+const PYG_pct = (v,t) => t===0 ? '—' : (v/t*100).toFixed(1).replace('.',',')+',0%'.replace(',0%','%');
+const PYG_pctFmt = (v,t) => {
+  if(t===0) return '—';
+  const p = (v/t*100).toFixed(1);
+  return p.replace('.',',')+'\u202f%';
+};
+
+// ── DATA ENGINE ──
+function PYG_getRows(mes, cc) {
+  let rows = PYG_RAW;
+  if (mes > 0) rows = rows.filter(r => r.month === mes);
+  // CC filter
+  if (cc === 'COMUNICACION') rows = rows.filter(r => r.grupo === 'COMUNICACION');
+  else if (cc === 'ASUNTOS PUBLICOS') rows = rows.filter(r => r.grupo === 'ASUNTOS PUBLICOS');
+  // Tipo filter
+  if (PYG_curTipo === 'fija') rows = rows.filter(r => r.tipo === 'fija');
+  else if (PYG_curTipo === 'especial') rows = rows.filter(r => r.tipo === 'especial');
+  // Detalle filter
+  if (PYG_curDet !== 'todos') rows = rows.filter(r => r.cc === PYG_curDet);
+  return rows;
+}
+
+function PYG_aggregate(rows) {
+  const s = k => rows.reduce((a,r) => a+(r[k]||0), 0);
+  const ing=s('ing'), costo=s('costo'), mb=s('mb'), gastos=s('gastos');
+  const res=s('res');
+  return {ing,costo,mb,gastos,res,
+    nom:s('nom'),inst:s('inst'),viaj:s('viaj'),gest:s('gest'),serv:s('serv'),otros:s('otros')};
+}
+
+function PYG_calcTax(mes, cc) {
+  // Tax is CORPORATE level only - never assigned to individual CC
+  // For CC views: always return 0 (show result before tax)
+  // For TOTAL: return provision based on consolidated result
+  if (cc !== 'TOTAL') return 0;
+
+  if (mes === 0) {
+    // Acumulado: provision sobre resultado consolidado acumulado
+    const rows = PYG_getRows(0, 'TOTAL');
+    const totalRes = rows.reduce((a,r)=>a+r.res,0);
+    return totalRes > 0 ? Math.round(totalRes * PYG_TAX * 100) / 100 : 0;
+  } else {
+    // Mensual: provision del mes consolidado
+    const rows = PYG_getRows(mes, 'TOTAL');
+    const totalRes = rows.reduce((a,r)=>a+r.res,0);
+    return totalRes > 0 ? Math.round(totalRes * PYG_TAX * 100) / 100 : 0;
+  }
+}
+
+function PYG_getData(mes, cc) {
+  const rows = PYG_getRows(mes, cc);
+  const d = PYG_aggregate(rows);
+  const imp = PYG_calcTax(mes, cc);
+  const neta = d.res - imp;
+  return {...d, imp, neta};
+}
+
+let PYG_curMes=0, PYG_curCC='TOTAL', PYG_curTipo='todo', PYG_curDet='todos';
+
+// ── CHARTS ──
+let PYG_evCh, PYG_resCh, PYG_ccCh;
+
+function PYG_initCharts() {
+  const ml = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m,'TOTAL')));
+
+  PYG_evCh = new Chart(document.getElementById('pyg_evChart'), {
+    type:'bar',
+    data:{labels:['Enero','Febrero','Marzo'],datasets:[
+      {label:'Ingresos',data:ml.map(m=>m.ing),backgroundColor:'rgba(122,92,26,0.55)',borderRadius:3,borderSkipped:false,order:2},
+      {label:'Gastos op.',data:ml.map(m=>m.gastos),backgroundColor:'rgba(139,43,26,0.55)',borderRadius:3,borderSkipped:false,order:2},
+      {label:'Margen bruto',data:ml.map(m=>m.mb),type:'line',borderColor:'var(--green)',borderWidth:2,pointBackgroundColor:'var(--green)',pointRadius:4,fill:false,tension:0.3,order:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+PYG_fmtk(c.raw)}}},
+      scales:{x:{ticks:{color:PYG_TC,font:{size:10,family:'DM Mono'}},grid:{display:false}},
+              y:{ticks:{color:PYG_TC,font:{size:9,family:'DM Mono'},callback:PYG_fmtk},grid:{color:PYG_GC},border:{display:false}}}}
+  });
+
+  PYG_resCh = new Chart(document.getElementById('pyg_resChart'), {
+    type:'bar',
+    data:{labels:['Enero','Febrero','Marzo'],datasets:[{
+      label:'Resultado',data:ml.map(m=>m.res),
+      backgroundColor:ml.map(m=>m.res>=0?'rgba(26,107,74,0.7)':'rgba(139,43,26,0.7)'),
+      borderRadius:3,borderSkipped:false
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Resultado: '+PYG_fmtk(c.raw)}}},
+      scales:{x:{ticks:{color:PYG_TC,font:{size:10,family:'DM Mono'}},grid:{display:false}},
+              y:{ticks:{color:PYG_TC,font:{size:9,family:'DM Mono'},callback:PYG_fmtk},grid:{color:PYG_GC},border:{display:false}}}}
+  });
+
+  PYG_renderCCChart();
+}
+
+function PYG_updateEvChart() {
+  const ml = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m, PYG_curCC)));
+  PYG_evCh.data.datasets[0].data = ml.map(m=>m.ing);
+  PYG_evCh.data.datasets[1].data = ml.map(m=>m.gastos);
+  PYG_evCh.data.datasets[2].data = ml.map(m=>m.mb);
+  PYG_evCh.update();
+  PYG_resCh.data.datasets[0].data = ml.map(m=>m.res);
+  PYG_resCh.data.datasets[0].backgroundColor = ml.map(m=>m.res>=0?'rgba(26,107,74,0.7)':'rgba(139,43,26,0.7)');
+  PYG_resCh.update();
+}
+
+function PYG_renderCCChart() {
+  const comm = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m,'COMUNICACION')));
+  const aapp = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m,'ASUNTOS PUBLICOS')));
+  if(PYG_ccCh) PYG_ccCh.destroy();
+  PYG_ccCh = new Chart(document.getElementById('pyg_ccChart'), {
+    type:'bar',
+    data:{labels:['Enero','Febrero','Marzo'],datasets:[
+      {label:'Com. Ingresos',data:comm.map(m=>m.ing),backgroundColor:'rgba(122,92,26,0.5)',borderRadius:3,borderSkipped:false},
+      {label:'AAPP Ingresos',data:aapp.map(m=>m.ing),backgroundColor:'rgba(26,63,107,0.5)',borderRadius:3,borderSkipped:false},
+      {label:'Com. Resultado',data:comm.map(m=>m.res),type:'line',borderColor:'var(--gold)',borderWidth:2,pointRadius:3,fill:false,tension:0.3},
+      {label:'AAPP Resultado',data:aapp.map(m=>m.res),type:'line',borderColor:'var(--blue)',borderWidth:2,pointRadius:3,fill:false,tension:0.3},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+PYG_fmtk(c.raw)}}},
+      scales:{x:{ticks:{color:PYG_TC,font:{size:10,family:'DM Mono'}},grid:{display:false}},
+              y:{ticks:{color:PYG_TC,font:{size:9,family:'DM Mono'},callback:PYG_fmtk},grid:{color:PYG_GC},border:{display:false}}}}
+  });
+
+  const c=PYG_getData(0,'COMUNICACION'), a=PYG_getData(0,'ASUNTOS PUBLICOS');
+  document.getElementById('ccMini').innerHTML=`
+    <div style="background:var(--gold-light);border:1px solid rgba(122,92,26,.15);border-radius:8px;padding:12px">
+      <div style="font-size:9px;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Comunicación · Acumulado</div>
+      <div style="font-size:16px;font-weight:600">${PYG_fmtD(c.ing)}</div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;margin-top:3px;color:${c.neta>=0?'var(--green)':'var(--red)'}">Util. neta: ${PYG_fmtD(c.neta)}</div>
+      <div style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">Margen: ${PYG_pctFmt(c.neta,c.ing)}</div>
+    </div>
+    <div style="background:var(--blue-light);border:1px solid rgba(26,63,107,.15);border-radius:8px;padding:12px">
+      <div style="font-size:9px;color:var(--blue);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Asuntos Públicos · Acumulado</div>
+      <div style="font-size:16px;font-weight:600">${PYG_fmtD(a.ing)}</div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;margin-top:3px;color:${a.neta>=0?'var(--green)':'var(--red)'}">Util. neta: ${PYG_fmtD(a.neta)}</div>
+      <div style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">Margen: ${PYG_pctFmt(a.neta,a.ing)}</div>
+    </div>`;
+}
+
+// ── PyG TABLE ──
+function PYG_renderPyG() {
+  const showAll = PYG_curMes === 0;
+  const months = PYG_MONTHS;
+  const mData = months.map(m => PYG_getData(m, PYG_curCC));
+  const totData = PYG_getData(0, PYG_curCC);
+
+  const colLabel = showAll ? months.map(m=>`<th>${PYG_MNS[m]}</th>`).join('') + '<th>Acumulado</th>' : `<th colspan="3"></th><th>${PYG_MN[PYG_curMes]}</th>`;
+  let html = `<tr><th style="text-align:left">Concepto</th>${colLabel}</tr>`;
+
+  const row = (label, key, cls='', indent=false) => {
+    const lbl = indent ? `<span class="pyg-indent">${label}</span>` : label;
+    if(showAll){
+      const cells = mData.map(d=>`<td class="${(d[key]||0)<0?'neg':''} ${cls}">${PYG_fmt(d[key]||0)}</td>`).join('');
+      const tot = totData[key]||0;
+      return `<tr><td>${lbl}</td>${cells}<td class="${tot<0?'neg':''} ${cls}" style="font-weight:500">${PYG_fmtD(tot)}</td></tr>`;
+    } else {
+      const d = PYG_getData(PYG_curMes, PYG_curCC);
+      const v = d[key]||0;
+      return `<tr><td>${lbl}</td><td colspan="3"></td><td class="${v<0?'neg':''} ${cls}">${PYG_fmtD(v)}</td></tr>`;
+    }
+  };
+
+  const subtot = (label, key, extraCls='') => {
+    if(showAll){
+      const cells = mData.map(d=>{const v=d[key]||0;return `<td class="${v<0?'neg':''} ${extraCls}" style="font-weight:600">${PYG_fmt(v)}</td>`;}).join('');
+      const tot = totData[key]||0;
+      return `<tr class="pyg-subtotal"><td>${label}</td>${cells}<td class="${tot<0?'neg':''} ${extraCls}">${PYG_fmtD(tot)}</td></tr>`;
+    } else {
+      const d = PYG_getData(PYG_curMes, PYG_curCC);
+      const v = d[key]||0;
+      return `<tr class="pyg-subtotal"><td>${label}</td><td colspan="3"></td><td class="${v<0?'neg':''} ${extraCls}">${PYG_fmtD(v)}</td></tr>`;
+    }
+  };
+
+  const sec = t => `<tr class="pyg-section"><td colspan="${showAll?'6':'5'}">${t}</td></tr>`;
+
+  html += sec('INGRESOS');
+  html += row('Ingresos por servicios','ing','',true);
+  html += subtot('Total ingresos','ing','gold-c');
+
+  html += sec('COSTO DE VENTAS');
+  html += row('Costos directos','costo','neg',true);
+  html += subtot('Margen bruto','mb', totData.mb>=0?'pos':'neg');
+
+  html += sec('GASTOS OPERATIVOS');
+  html += row('Nómina y beneficios','nom','neg',true);
+  html += row('Servicios profesionales','serv','neg',true);
+  html += row('Instalaciones y tecnología','inst','neg',true);
+  html += row('Viajes y movilización','viaj','neg',true);
+  html += row('Otros gastos','otros','neg',true);
+  html += subtot('Total gastos operativos','gastos','neg');
+
+  html += sec('RESULTADO');
+  html += subtot('Utilidad antes de impuestos','res', totData.res>=0?'pos':'neg');
+
+  // Tax row — only when CC has positive result
+  if(showAll){
+    const impCells = mData.map(d=>`<td class="neg">${d.imp>0?PYG_fmt(d.imp):'—'}</td>`).join('');
+    const totImp = totData.imp;
+    html += `<tr><td><span class="pyg-indent">Part. trabajadores e IR (33,34%)</span></td>${impCells}<td class="neg" style="font-weight:500">${totImp>0?PYG_fmtD(totImp):'—'}</td></tr>`;
+  } else {
+    const d = PYG_getData(PYG_curMes, PYG_curCC);
+    html += `<tr><td><span class="pyg-indent">Part. trabajadores e IR (33,34%)</span></td><td colspan="3"></td><td class="neg">${d.imp>0?PYG_fmtD(d.imp):'—'}</td></tr>`;
+  }
+
+  // Utilidad neta
+  if(showAll){
+    const netaCells = mData.map(d=>`<td class="${d.neta>=0?'pos':'neg'}" style="font-size:13px;font-weight:700">${PYG_fmt(d.neta)}</td>`).join('');
+    const totNeta = totData.neta;
+    html += `<tr class="pyg-total"><td>Utilidad neta</td>${netaCells}<td class="${totNeta>=0?'pos':'neg'}">${PYG_fmtD(totNeta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(totNeta,totData.ing)})</small></td></tr>`;
+  } else {
+    const d = PYG_getData(PYG_curMes, PYG_curCC);
+    html += `<tr class="pyg-total"><td>Utilidad neta</td><td colspan="3"></td><td class="${d.neta>=0?'pos':'neg'}">${PYG_fmtD(d.neta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(d.neta,d.ing)})</small></td></tr>`;
+  }
+
+  document.getElementById('pygTable').innerHTML = html;
+
+  // Badge
+  const b = document.getElementById('pygBadge');
+  b.style.background = PYG_curCC==='COMUNICACION'?'var(--gold-light)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue-light)':'var(--surface2)';
+  b.style.color = PYG_curCC==='COMUNICACION'?'var(--gold)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue)':'var(--text-2)';
+  b.textContent = PYG_curCC==='TOTAL'?'Consolidado':PYG_curCC==='COMUNICACION'?'Comunicación':'Asuntos Públicos';
+}
+
+// ── KPIs ──
+function PYG_renderKPIs() {
+  const d = PYG_getData(PYG_curMes, PYG_curCC);
+  const lbl = PYG_curMes===0 ? 'Acumulado '+PYG_MONTHS.length+' meses' : PYG_MN[PYG_curMes];
+  document.getElementById('kIng').textContent = PYG_fmtD(d.ing);
+  document.getElementById('kIngSub').textContent = lbl;
+  document.getElementById('kCosto').textContent = PYG_fmtD(d.costo);
+  document.getElementById('kCostoSub').textContent = PYG_pctFmt(d.costo,d.ing)+' de ingresos';
+  document.getElementById('kMB').className = 'metric-value '+(d.mb>=0?'pos':'neg');
+  document.getElementById('kMB').textContent = PYG_fmtD(d.mb);
+  const mp = document.getElementById('kMBPill');
+  mp.className = 'pill '+(d.mb>=0?'pill-pos':'pill-neg');
+  mp.textContent = PYG_pctFmt(d.mb,d.ing);
+  document.getElementById('kGasto').textContent = PYG_fmtD(d.gastos);
+  document.getElementById('kGastoSub').textContent = PYG_pctFmt(d.gastos,d.ing)+' de ingresos';
+  document.getElementById('kRes').className = 'metric-value '+(d.res>=0?'pos':'neg');
+  document.getElementById('kRes').textContent = PYG_fmtD(d.res);
+  const rp = document.getElementById('kResPill');
+  rp.className = 'pill '+(d.res>=0?'pill-pos':'pill-neg');
+  rp.textContent = PYG_pctFmt(d.res,d.ing);
+  document.getElementById('kUN').className = 'metric-value '+(d.neta>=0?'pos':'neg');
+  document.getElementById('kUN').textContent = PYG_fmtD(d.neta);
+  const unLabel = PYG_curCC === 'TOTAL' ? 'Margen neto (después imp.): ' : 'Resultado antes imp.: ';
+  document.getElementById('kUNSub').textContent = unLabel+PYG_pctFmt(d.neta,d.ing);
+  // Update KPI label
+  document.getElementById('kUN').previousElementSibling.textContent = PYG_curCC === 'TOTAL' ? 'Utilidad neta' : 'Resultado antes imp.';
+}
+
+// ── GASTOS WATERFALL ──
+function PYG_renderGastos() {
+  const d = PYG_getData(PYG_curMes, PYG_curCC);
+  const items = [
+    {label:'Nómina y beneficios',val:d.nom,color:'var(--gold)'},
+    {label:'Servicios profesionales',val:d.serv,color:'var(--blue)'},
+    {label:'Instalaciones y tecnol.',val:d.inst,color:'var(--green)'},
+    {label:'Viajes y movilización',val:d.viaj,color:'var(--red)'},
+    {label:'Otros gastos',val:d.otros,color:'var(--text-3)'},
+  ].filter(i=>i.val>0).sort((a,b)=>b.val-a.val);
+  const maxV = Math.max(...items.map(i=>i.val));
+  const totV = items.reduce((a,i)=>a+i.val,0);
+  document.getElementById('gastosWF').innerHTML = items.map(i=>`
+    <div class="wf-row">
+      <div class="wf-label">${i.label}</div>
+      <div class="wf-bar-wrap"><div class="wf-bar" style="width:${(i.val/maxV*100).toFixed(1)}%;background:${i.color};opacity:0.65"></div></div>
+      <div class="wf-val" style="color:${i.color}">${PYG_fmtD(i.val)}</div>
+      <div class="wf-PYG_pct">${PYG_pctFmt(i.val,totV)}</div>
+    </div>`).join('');
+}
+
+// ── MARGIN TABLE ──
+function PYG_renderMargenes() {
+  const ccs = ['COMUNICACION','ASUNTOS PUBLICOS','TOTAL'];
+  const ccLabels = {'COMUNICACION':'Comunicación','ASUNTOS PUBLICOS':'Asuntos Públicos','TOTAL':'Consolidado'};
+
+  // Header: metrics as rows, months + acumulado as columns
+  const colHdrs = PYG_MONTHS.map(m=>`<th>${PYG_MN[m]}</th>`).join('') + '<th>Acumulado</th>';
+  let html = `<tr><th style="text-align:left">Métrica</th>${colHdrs}</tr>`;
+
+  const metrics = [
+    {label:'Margen bruto %', fn:(d)=>PYG_pctFmt(d.mb,d.ing), positiveBetter:true},
+    {label:'Gastos / Ingresos %', fn:(d)=>PYG_pctFmt(d.gastos,d.ing), positiveBetter:false},
+    {label:'Resultado antes imp. %', fn:(d)=>PYG_pctFmt(d.res,d.ing), positiveBetter:true},
+    {label:'Margen neto %', fn:(d)=>PYG_pctFmt(d.neta,d.ing), positiveBetter:true},
+  ];
+
+  // One section per CC
+  ccs.forEach(cc => {
+    html += `<tr><td colspan="${PYG_MONTHS.length+2}" style="padding-top:14px;padding-bottom:4px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:${cc==='COMUNICACION'?'var(--gold)':cc==='ASUNTOS PUBLICOS'?'var(--blue)':'var(--text-3)'};font-family:'DM Mono',monospace;border-bottom:none">${ccLabels[cc]}</td></tr>`;
+    metrics.forEach(m => {
+      const mVals = PYG_MONTHS.map(mo => PYG_getData(mo, cc));
+      const totVal = PYG_getData(0, cc);
+      const cells = mVals.map(d=>{
+        const v = parseFloat(d.res/d.ing*100);
+        const raw = m.fn(d);
+        return `<td>${raw}</td>`;
+      }).join('');
+      html += `<tr><td>${m.label}</td>${cells}<td style="font-weight:600">${m.fn(totVal)}</td></tr>`;
+    });
+  });
+
+  document.getElementById('margTable').innerHTML = html;
+}
+
+// ── FILTERS ──
+function PYG_setMes(mes, btn) {
+  PYG_curMes = mes;
+  document.querySelectorAll('.pyg-mes').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  PYG_render();
+}
+function PYG_setCC(cc, btn) {
+  PYG_curCC = cc;
+  document.querySelectorAll('.pyg-cc').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  PYG_updateEvChart();
+  PYG_render();
+}
+
+function PYG_setTipo(tipo, btn) {
+  PYG_curTipo = tipo;
+  PYG_curDet = 'todos'; // reset detail when tipo changes
+  document.querySelectorAll('.pyg-tipo').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Reset detail chips
+  document.querySelectorAll('.pyg-det').forEach(b => {
+    b.classList.remove('active');
+    if (b.dataset.det === 'todos') b.classList.add('active');
+  });
+  PYG_updateDetFilters();
+  PYG_updateEvChart();
+  PYG_render();
+}
+
+function PYG_setDet(det, btn) {
+  PYG_curDet = det;
+  document.querySelectorAll('.pyg-det').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  PYG_updateEvChart();
+  PYG_render();
+}
+
+function PYG_updateDetFilters() {
+  const cc = document.getElementById('pyg-det-bar');
+  if (!cc) return;
+  // Show/hide detail chips based on tipo and grupo
+  document.querySelectorAll('.pyg-det[data-det]').forEach(b => {
+    const det = b.dataset.det;
+    if (det === 'todos') { b.style.display=''; return; }
+    const meta = {A1:'fija',A2:'fija',A10:'especial',A11:'especial',A13:'especial'};
+    const grp = {A1:'COMUNICACION',A2:'ASUNTOS PUBLICOS',A10:'COMUNICACION',A11:'ASUNTOS PUBLICOS',A13:'ASUNTOS PUBLICOS'};
+    let show = true;
+    if (PYG_curTipo === 'fija' && meta[det] !== 'fija') show = false;
+    if (PYG_curTipo === 'especial' && meta[det] !== 'especial') show = false;
+    if (PYG_curCC === 'COMUNICACION' && grp[det] !== 'COMUNICACION') show = false;
+    if (PYG_curCC === 'ASUNTOS PUBLICOS' && grp[det] !== 'ASUNTOS PUBLICOS') show = false;
+    b.style.display = show ? '' : 'none';
+  });
+}
+
+function PYG_render() { PYG_renderKPIs(); PYG_renderPyG(); PYG_renderGastos(); PYG_renderMargenes(); }
+
+// Lazy-init on tab click
+
+</script>
+</body>
+</html>
