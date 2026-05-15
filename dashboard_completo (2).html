@@ -99,9 +99,45 @@ table.marg tr:last-child td{border-bottom:none;font-weight:600;color:var(--text)
 .chip.comm.active{background:var(--gold);border-color:var(--gold);color:#fff}
 .chip.aapp.active{background:var(--blue);border-color:var(--blue);color:#fff}
 .divider-v{width:1px;height:18px;background:var(--border);margin:0 4px;display:inline-block;vertical-align:middle}
+
+/* ── LOGIN ── */
+.login-overlay{position:fixed;inset:0;background:#0A0A0A;z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem}
+.login-overlay.hidden{display:none}
+.login-box{background:#1A1A1A;border:1px solid #2A2A2A;border-radius:12px;padding:2.5rem 2rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+.login-logo{height:22px;object-fit:contain;margin-bottom:2rem;display:block}
+.login-title{font-size:17px;font-weight:600;color:#fff;margin-bottom:4px}
+.login-sub{font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:1.75rem;font-family:'DM Mono',monospace}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:10px;color:rgba(255,255,255,0.4);margin-bottom:6px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;font-family:'DM Mono',monospace}
+.login-field input{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;border-radius:6px;border:1px solid #2A2A2A;background:#111;color:#fff;outline:none;transition:border-color .15s}
+.login-field input:focus{border-color:rgba(255,255,255,0.35)}
+.login-error{font-size:11px;color:#ff6b6b;margin-bottom:12px;min-height:16px;font-family:'DM Mono',monospace}
+.login-btn{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:11px;border-radius:6px;border:none;background:#fff;color:#0A0A0A;cursor:pointer;transition:opacity .15s;margin-top:4px}
+.login-btn:hover{opacity:0.88}
+.btn-logout{background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:6px 14px;font-size:11px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .15s}
+.btn-logout:hover{color:#fff;border-color:rgba(255,255,255,0.4)}
 </style>
 </head>
 <body>
+
+<!-- ── LOGIN OVERLAY ── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <img src="data:image/png;base64,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bbLfKIKjdScDyjTzJJbDlVskoqpu5jf8aKdm/wAeN/Y5v/p2HY8ljKts1U09xjUrFpcfyihE8J3dBOzYTUsm2wkjd3H9B7CCOSrX140lyLSXLXWm7NNTbpy59uuLGbR1MY+i8bjib3ekEEhrtERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBSQ6H/AEf3ah17cwy2mkZilJLtDCfNNxlaebfHqgfjEdp80fK2wbox6RVmrWetoZesgsNv4Z7rUt7QzfzYmn7d+xA8AHHntsbNrPbaCz2qltVrpIqOhpImw08ETdmRsaNg0D0BB96aCClpoqamhjhgiYGRxxtDWsaBsGgDkABy2X0REBERAREQEREBERAREQEREBERAREQFjGqGC2DUXDazF8iputpagbxytA6ynkHxZYyexw/SCQdwSFk6IKldXdP75ppnNbit9j+FhPHT1DW7MqoSTwSs9B2PLuIIPMFYirNOlppPTanabTyUsUbMhs7H1VtmPIv2G74CfB4HLfscGns33rLQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBdyyWyvvV5o7Pa6Z9VXVs7KenhZ2ySPIDQPWSumpceTy00bcL5X6l3Sm4qe3E0dq4xyM7m/CSD71hDQezd7u9qCUWgum1u0s05ocapOrlrCOvuNS0f6xUOA4nfejYNb9y0d+6z5EQEREBERAREQEREBERAREQEREBERAREQEREHSv31jr/waT6JVOiuLv31jr/waT6JVOiCRXQSxDGc1zrJbPlVlo7tQmylwjqGbljuujHExw85jtiRxNIPPtWWdIDoiVlnp6jIdMJKi40bAXy2aY8dRGP8Agu/2g+5PncuRcTsvP8m5++nkfzIf18Snkgpoe1zHlj2lrmnYgjYgr8U0+nPoZTGgqdUsTomwzRHjvlLE3YSNJ/1kAdjgfj+I87tDiYWICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiKU3Qi0LosxnOoOX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" alt="Keyword" class="login-logo">
+    <div class="login-title">Dashboard Financiero</div>
+    <div class="login-sub">Acceso restringido · Keyword</div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="loginUser" placeholder="usuario" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+  </div>
+</div>
 
 <div class="header">
   <div class="header-brand">
@@ -118,6 +154,7 @@ table.marg tr:last-child td{border-bottom:none;font-weight:600;color:var(--text)
     </div>
   </div>
   <div class="header-date">Actualizado: 12/05/2026</div>
+  <button class="btn-logout" onclick="doLogout()">Salir</button>
 </div>
 
 <div class="tab-bar">
@@ -471,123 +508,116 @@ renderCxc();
 
 <!-- TAB 3: ESTADO DE RESULTADOS -->
 <div id="tab-pyg" class="tab-content">
-  <div id="pyg-filter-bar" style="background:var(--surface);border-bottom:1px solid var(--border);padding:8px 32px;margin:-28px -32px 24px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-    <button class="chip pyg-mes active" onclick="PYG_setMes(0,this)">Acumulado</button>
-    <button class="chip pyg-mes" onclick="PYG_setMes(1,this)">Ene</button>
-    <button class="chip pyg-mes" onclick="PYG_setMes(2,this)">Feb</button>
-    <button class="chip pyg-mes" onclick="PYG_setMes(3,this)">Mar</button>
-    <button class="chip pyg-mes" onclick="PYG_setMes(4,this)">Abr</button>
-    <div style="width:1px;height:16px;background:var(--border);margin:0 6px"></div>
-    <button class="chip pyg-cc active" onclick="PYG_setCC('TOTAL',this)">Consolidado</button>
-    <button class="chip pyg-cc comm" onclick="PYG_setCC('COMUNICACION',this)">Comunicación</button>
-    <button class="chip pyg-cc aapp" onclick="PYG_setCC('ASUNTOS PUBLICOS',this)">Asuntos Públicos</button>
-    <div style="width:1px;height:16px;background:var(--border);margin:0 6px"></div>
-    <select id="pyg_tipoSelect" onchange="PYG_setTipoSelect(this.value)" style="font-size:11px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-family:'DM Mono',monospace;cursor:pointer">
-      <option value="todo">Todo</option>
-      <option value="fija">Base fija</option>
-      <option value="especial">Proyectos especiales</option>
-    </select>
-    <select id="pyg_detSelect" onchange="PYG_setDetSelect(this.value)" style="font-size:11px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-family:'DM Mono',monospace;cursor:pointer">
-      <option value="todos">Todos los CC</option>
-      <option value="A1">A1 · Com. Base</option>
-      <option value="A2">A2 · AAPP Base</option>
-      <option value="A10">A10 · Proy. Com.</option>
-      <option value="A11">A11 · Proy. AAPP</option>
-      <option value="A13">A13 · Enc. Fiduciario</option>
-    </select>
-    <span style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;margin-left:auto">imp. 33,34%</span>
-  </div>
-  
 
-  <div class="metrics">
-    <div class="metric">
-      <div class="metric-label">Ingresos</div>
-      <div class="metric-value gold" id="kIng">—</div>
-      <div class="metric-sub" id="kIngSub">—</div>
+  <!-- FILTER BAR — all selects -->
+  <div id="pyg-filter-bar" style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 32px;margin:-28px -32px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:6px">
+      <label style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Año</label>
+      <select id="pyg_yearSelect" onchange="PYG_setYear(this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
+        <option value="2026">2026</option>
+        <option value="2025">2025</option>
+        <option value="2024">2024</option>
+      </select>
     </div>
-    <div class="metric">
-      <div class="metric-label">Costo ventas</div>
-      <div class="metric-value" id="kCosto">—</div>
-      <div class="metric-sub" id="kCostoSub">—</div>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <label style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Período</label>
+      <select id="pyg_mesSelect" onchange="PYG_setMesSelect(this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
+        <option value="0">Acumulado</option>
+        <option value="1">Enero</option>
+        <option value="2">Febrero</option>
+        <option value="3">Marzo</option>
+        <option value="4">Abril</option>
+      </select>
     </div>
-    <div class="metric">
-      <div class="metric-label">Margen bruto</div>
-      <div class="metric-value" id="kMB">—</div>
-      <div id="kMBPill" class="pill">—</div>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <label style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Vista</label>
+      <select id="pyg_ccSelect" onchange="PYG_setCCSelect(this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
+        <option value="TOTAL">Consolidado</option>
+        <option value="COMUNICACION">Comunicación</option>
+        <option value="ASUNTOS PUBLICOS">Asuntos Públicos</option>
+      </select>
     </div>
-    <div class="metric">
-      <div class="metric-label">Gastos operativos</div>
-      <div class="metric-value" id="kGasto">—</div>
-      <div class="metric-sub" id="kGastoSub">—</div>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <label style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Negocio</label>
+      <select id="pyg_tipoSelect" onchange="PYG_setTipoSelect(this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
+        <option value="todo">Todo</option>
+        <option value="fija">Base fija</option>
+        <option value="especial">Proyectos especiales</option>
+      </select>
     </div>
-    <div class="metric">
-      <div class="metric-label">Utilidad antes imp.</div>
-      <div class="metric-value" id="kRes">—</div>
-      <div id="kResPill" class="pill">—</div>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <label style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Centro</label>
+      <select id="pyg_detSelect" onchange="PYG_setDetSelect(this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
+        <option value="todos">Todos los CC</option>
+        <option value="A1">A1 · Com. Base</option>
+        <option value="A2">A2 · AAPP Base</option>
+        <option value="A10">A10 · Proy. Com.</option>
+        <option value="A11">A11 · Proy. AAPP</option>
+        <option value="A13">A13 · Enc. Fiduciario</option>
+      </select>
     </div>
-    <div class="metric">
-      <div class="metric-label">Utilidad neta</div>
-      <div class="metric-value" id="kUN">—</div>
-      <div class="metric-sub" id="kUNSub">—</div>
-    </div>
+    <span id="pyg_badge" style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;padding:3px 10px;border-radius:20px;background:var(--surface2);color:var(--text-2)">Consolidado · Acumulado</span>
   </div>
 
-  <div class="grid2">
+  <!-- SUMMARY WATERFALL TABLE -->
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:0">Resumen ejecutivo</div>
+      <div style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace" id="pyg_summaryPeriod">—</div>
+    </div>
+    <table id="pyg_summaryTable" style="width:100%;border-collapse:collapse"></table>
+  </div>
+
+  <!-- TWO COLUMNS: detailed P&G + gastos breakdown -->
+  <div class="grid2" style="margin-bottom:14px">
+
+    <!-- Detailed P&G with gastos accordion -->
     <div class="card">
-      <div class="card-header">
-        <div class="card-title">Estado de resultados detallado</div>
-        <div id="pygBadge" style="font-size:10px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:5px;background:var(--surface2);color:var(--text-2)">Consolidado</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin-bottom:0">Estado de resultados detallado</div>
+        <span style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">Clic en gastos para desglosar</span>
       </div>
       <div style="overflow-x:auto"><table class="pyg" id="pygTable"></table></div>
     </div>
 
+    <!-- Gastos breakdown + evolution chart -->
     <div style="display:flex;flex-direction:column;gap:13px">
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">Evolución mensual</div>
-          <div class="legend">
-            <span><span class="ldot" style="background:var(--gold)"></span>Ingresos</span>
-            <span><span class="ldot" style="background:var(--green)"></span>M. bruto</span>
-            <span><span class="ldot" style="background:var(--red)"></span>Gastos</span>
-          </div>
-        </div>
-        <div style="position:relative;height:190px"><canvas id="pyg_evChart"></canvas></div>
+        <div class="card-title">Composición gastos operativos</div>
+        <div id="gastosWF"></div>
       </div>
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">Resultado antes impuestos · mensual</div>
+        <div class="card-title">Evolución mensual</div>
+        <div class="legend" style="margin-bottom:8px">
+          <span><span class="legend-dot" style="background:var(--gold)"></span>Ingresos</span>
+          <span><span class="legend-dot" style="background:var(--green)"></span>M. bruto</span>
+          <span><span class="legend-dot" style="background:var(--red)"></span>Gastos op.</span>
         </div>
-        <div style="position:relative;height:100px"><canvas id="pyg_resChart"></canvas></div>
+        <div style="position:relative;height:180px"><canvas id="pyg_evChart"></canvas></div>
       </div>
     </div>
   </div>
 
-  <div class="grid2">
-    <div class="card">
-      <div class="card-header"><div class="card-title">Composición gastos operativos</div></div>
-      <div id="gastosWF"></div>
-    </div>
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Comunicación vs Asuntos Públicos</div>
-        <div class="legend">
-          <span><span class="ldot" style="background:var(--gold)"></span>Com.</span>
-          <span><span class="ldot" style="background:var(--blue)"></span>AAPP</span>
-        </div>
-      </div>
-      <div style="position:relative;height:180px"><canvas id="pyg_ccChart"></canvas></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px" id="ccMini"></div>
-    </div>
-  </div>
-
-  <!-- MARGIN TABLE -->
+  <!-- MARGIN ANALYSIS — chart with metric selector -->
   <div class="card">
-    <div class="card-header">
-      <div class="card-title">Análisis de márgenes</div>
-      <div style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">% sobre ingresos de cada período</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:0">Análisis de márgenes</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">Métrica</label>
+        <select id="pyg_margMetric" onchange="PYG_renderMargenes()" style="font-size:11px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-family:'DM Mono',monospace;cursor:pointer">
+          <option value="mb">Margen bruto %</option>
+          <option value="gastos">Gastos / Ingresos %</option>
+          <option value="res">Resultado antes imp. %</option>
+          <option value="neta">Margen neto %</option>
+        </select>
+      </div>
     </div>
-    <div style="overflow-x:auto"><table class="marg" id="margTable"></table></div>
-    <div class="marg-note">* El impuesto es una provisión corporativa (33,34% sobre resultado consolidado positivo del período). A nivel de centro de costo se muestra el resultado antes de impuestos, ya que el impuesto no es atribuible a un CC específico.</div>
+    <div style="position:relative;height:220px"><canvas id="pyg_margChart"></canvas></div>
+    <div class="marg-note" style="margin-top:12px">* Impuesto: provisión corporativa 33,34% sobre resultado consolidado positivo. A nivel de CC se muestra antes de impuestos.</div>
   </div>
 
 </div>
@@ -597,14 +627,28 @@ renderCxc();
 
 <script>
 
-// ── PYG_RAW MONTHLY DATA (desde el sistema, 100% dinámico) ──
-const PYG_RAW = [{"month": 1, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 46468.99, "costo": 1160.8, "mb": 45308.19, "nom": 25349.73, "inst": 4037.14, "viaj": 254.21, "gest": 0, "serv": 25192.96, "otros": 1829.8, "gastos": 56663.84, "res": -11355.65}, {"month": 1, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 517.4, "costo": 4091.6, "mb": -3574.2, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -3574.2}, {"month": 1, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 3000.0, "costo": 1000.0, "mb": 2000.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 2000.0}, {"month": 1, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.41, "costo": 0.0, "mb": 0.41, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 2.52, "gastos": 2.52, "res": -2.11}, {"month": 1, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 78031.51, "costo": 11502.37, "mb": 66529.14, "nom": 22040.51, "inst": 3170.17, "viaj": 138.76, "gest": 0, "serv": 27137.08, "otros": 1954.68, "gastos": 54441.2, "res": 12087.94}, {"month": 2, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 51797.27, "costo": 1467.0, "mb": 50330.27, "nom": 26039.67, "inst": 3016.21, "viaj": 2257.47, "gest": 43.16, "serv": 24117.55, "otros": 2180.23, "gastos": 57654.29, "res": -7324.02}, {"month": 2, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 22708.0, "costo": 19391.01, "mb": 3316.99, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 3316.99}, {"month": 2, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 3000.0, "costo": 1000.0, "mb": 2000.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 2000.0}, {"month": 2, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.0, "costo": 550.0, "mb": -550.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -550.0}, {"month": 2, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 77809.79, "costo": 12004.0, "mb": 65805.79, "nom": 29572.07, "inst": 2696.95, "viaj": 2278.74, "gest": 43.15, "serv": 24155.71, "otros": 2296.55, "gastos": 61043.17, "res": 4762.62}, {"month": 3, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 51610.03, "costo": 1467.0, "mb": 50143.03, "nom": 25842.67, "inst": 3431.15, "viaj": 1055.88, "gest": 0, "serv": 26092.44, "otros": 2146.47, "gastos": 58568.61, "res": -8425.58}, {"month": 3, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 20340.98, "costo": 11329.45, "mb": 9011.53, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 9011.53}, {"month": 3, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 3000.0, "costo": 1000.0, "mb": 2000.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 2000.0}, {"month": 3, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.0, "costo": 275.0, "mb": -275.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -275.0}, {"month": 3, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 70322.5, "costo": 12196.99, "mb": 58125.51, "nom": 25084.68, "inst": 3129.39, "viaj": 938.56, "gest": 0, "serv": 26720.86, "otros": 2610.42, "gastos": 58483.91, "res": -358.4}, {"month": 4, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 53724.16, "costo": 2417.0, "mb": 51307.16, "nom": 24583.59, "inst": 3356.52, "viaj": 362.96, "gest": 123.76, "serv": 26076.04, "otros": 906.87, "gastos": 55409.74, "res": -4102.58}, {"month": 4, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 17044.05, "costo": 5285.0, "mb": 11759.05, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 35.0, "gastos": 35.0, "res": 11724.05}, {"month": 4, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 2200.0, "costo": 883.33, "mb": 1316.67, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 1316.67}, {"month": 4, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.45, "costo": 419.45, "mb": -419.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -419.0}, {"month": 4, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 67739.17, "costo": 10391.99, "mb": 57347.18, "nom": 24148.54, "inst": 2979.19, "viaj": 627.41, "gest": 379.02, "serv": 26350.49, "otros": 943.73, "gastos": 55428.38, "res": 1918.8}];
+// ── PYG DATA BY YEAR ──
+// Each year keyed in PYG_ALL_RAW; 2026 is current data
+const PYG_ALL_RAW = {
+  2026: [{"month": 1, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 46468.99, "costo": 1160.8, "mb": 45308.19, "nom": 25349.73, "inst": 4037.14, "viaj": 254.21, "gest": 0, "serv": 25192.96, "otros": 1829.8, "gastos": 56663.84, "res": -11355.65}, {"month": 1, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 517.4, "costo": 4091.6, "mb": -3574.2, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -3574.2}, {"month": 1, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 3000.0, "costo": 1000.0, "mb": 2000.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 2000.0}, {"month": 1, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.41, "costo": 0.0, "mb": 0.41, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 2.52, "gastos": 2.52, "res": -2.11}, {"month": 1, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 78031.51, "costo": 11502.37, "mb": 66529.14, "nom": 22040.51, "inst": 3170.17, "viaj": 138.76, "gest": 0, "serv": 27137.08, "otros": 1954.68, "gastos": 54441.2, "res": 12087.94}, {"month": 2, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 51797.27, "costo": 1467.0, "mb": 50330.27, "nom": 26039.67, "inst": 3016.21, "viaj": 2257.47, "gest": 43.16, "serv": 24117.55, "otros": 2180.23, "gastos": 57654.29, "res": -7324.02}, {"month": 2, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 22708.0, "costo": 19391.01, "mb": 3316.99, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 3316.99}, {"month": 2, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 3000.0, "costo": 1000.0, "mb": 2000.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 2000.0}, {"month": 2, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.0, "costo": 550.0, "mb": -550.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -550.0}, {"month": 2, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 77809.79, "costo": 12004.0, "mb": 65805.79, "nom": 29572.07, "inst": 2696.95, "viaj": 2278.74, "gest": 43.15, "serv": 24155.71, "otros": 2296.55, "gastos": 61043.17, "res": 4762.62}, {"month": 3, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 51610.03, "costo": 1467.0, "mb": 50143.03, "nom": 25842.67, "inst": 3431.15, "viaj": 1055.88, "gest": 0, "serv": 26092.44, "otros": 2146.47, "gastos": 58568.61, "res": -8425.58}, {"month": 3, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 20340.98, "costo": 11329.45, "mb": 9011.53, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 9011.53}, {"month": 3, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 3000.0, "costo": 1000.0, "mb": 2000.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 2000.0}, {"month": 3, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.0, "costo": 275.0, "mb": -275.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -275.0}, {"month": 3, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 70322.5, "costo": 12196.99, "mb": 58125.51, "nom": 25084.68, "inst": 3129.39, "viaj": 938.56, "gest": 0, "serv": 26720.86, "otros": 2610.42, "gastos": 58483.91, "res": -358.4}, {"month": 4, "cc": "A1", "grupo": "COMUNICACION", "tipo_neg": "fija", "ing": 53724.16, "costo": 2417.0, "mb": 51307.16, "nom": 24583.59, "inst": 3356.52, "viaj": 362.96, "gest": 123.76, "serv": 26076.04, "otros": 906.87, "gastos": 55409.74, "res": -4102.58}, {"month": 4, "cc": "A10", "grupo": "COMUNICACION", "tipo_neg": "especial", "ing": 17044.05, "costo": 5285.0, "mb": 11759.05, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 35.0, "gastos": 35.0, "res": 11724.05}, {"month": 4, "cc": "A11", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 2200.0, "costo": 883.33, "mb": 1316.67, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": 1316.67}, {"month": 4, "cc": "A13", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "especial", "ing": 0.45, "costo": 419.45, "mb": -419.0, "nom": 0, "inst": 0, "viaj": 0, "gest": 0, "serv": 0, "otros": 0, "gastos": 0, "res": -419.0}, {"month": 4, "cc": "A2", "grupo": "ASUNTOS PUBLICOS", "tipo_neg": "fija", "ing": 67739.17, "costo": 10391.99, "mb": 57347.18, "nom": 24148.54, "inst": 2979.19, "viaj": 627.41, "gest": 379.02, "serv": 26350.49, "otros": 943.73, "gastos": 55428.38, "res": 1918.8}],
+  // 2025 and 2024: add data here when available (same structure, month 1-12)
+  2025: [],
+  2024: []
+};
+
+// Months with real data per year
+const PYG_MONTHS_BY_YEAR = { 2026:[1,2,3,4], 2025:[], 2024:[] };
 
 const PYG_TAX = 0.3334;
-const PYG_MONTHS = [1,2,3,4];
-const PYG_MN = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril'};
-const PYG_MNS = {1:'Ene',2:'Feb',3:'Mar',4:'Abr'};
+const PYG_MN_ALL = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'};
+const PYG_MNS_ALL = {1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'Ago',9:'Sep',10:'Oct',11:'Nov',12:'Dic'};
 const PYG_TC='rgba(0,0,0,0.35)', PYG_GC='rgba(0,0,0,0.06)';
+
+// Computed from current year selection
+let PYG_RAW = PYG_ALL_RAW[2026];
+let PYG_MONTHS = PYG_MONTHS_BY_YEAR[2026];
+let PYG_MN = PYG_MN_ALL;
+let PYG_MNS = PYG_MNS_ALL;
 
 // ── HELPERS ──
 const PYG_fmt = v => (v<0?'(':'') + '$' + Math.abs(v).toLocaleString('es-EC',{minimumFractionDigits:0,maximumFractionDigits:0}) + (v<0?')':'');
@@ -621,42 +665,26 @@ const PYG_pctFmt = (v,t) => {
 function PYG_getRows(mes, cc) {
   let rows = PYG_RAW;
   if (mes > 0) rows = rows.filter(r => r.month === mes);
-  // CC filter
   if (cc === 'COMUNICACION') rows = rows.filter(r => r.grupo === 'COMUNICACION');
   else if (cc === 'ASUNTOS PUBLICOS') rows = rows.filter(r => r.grupo === 'ASUNTOS PUBLICOS');
-  // Tipo filter
   if (PYG_curTipo === 'fija') rows = rows.filter(r => r.tipo_neg === 'fija');
   else if (PYG_curTipo === 'especial') rows = rows.filter(r => r.tipo_neg === 'especial');
-  // Detalle filter
   if (PYG_curDet !== 'todos') rows = rows.filter(r => r.cc === PYG_curDet);
   return rows;
 }
 
 function PYG_aggregate(rows) {
   const s = k => rows.reduce((a,r) => a+(r[k]||0), 0);
-  const ing=s('ing'), costo=s('costo'), mb=s('mb'), gastos=s('gastos');
-  const res=s('res');
+  const ing=s('ing'), costo=s('costo'), mb=s('mb'), gastos=s('gastos'), res=s('res');
   return {ing,costo,mb,gastos,res,
     nom:s('nom'),inst:s('inst'),viaj:s('viaj'),gest:s('gest'),serv:s('serv'),otros:s('otros')};
 }
 
 function PYG_calcTax(mes, cc) {
-  // Tax is CORPORATE level only - never assigned to individual CC
-  // For CC views: always return 0 (show result before tax)
-  // For TOTAL: return provision based on consolidated result
   if (cc !== 'TOTAL') return 0;
-
-  if (mes === 0) {
-    // Acumulado: provision sobre resultado consolidado acumulado
-    const rows = PYG_getRows(0, 'TOTAL');
-    const totalRes = rows.reduce((a,r)=>a+r.res,0);
-    return totalRes > 0 ? Math.round(totalRes * PYG_TAX * 100) / 100 : 0;
-  } else {
-    // Mensual: provision del mes consolidado
-    const rows = PYG_getRows(mes, 'TOTAL');
-    const totalRes = rows.reduce((a,r)=>a+r.res,0);
-    return totalRes > 0 ? Math.round(totalRes * PYG_TAX * 100) / 100 : 0;
-  }
+  const rows = PYG_getRows(mes, 'TOTAL');
+  const totalRes = rows.reduce((a,r)=>a+r.res,0);
+  return totalRes > 0 ? Math.round(totalRes * PYG_TAX * 100) / 100 : 0;
 }
 
 function PYG_getData(mes, cc) {
@@ -667,19 +695,21 @@ function PYG_getData(mes, cc) {
   return {...d, imp, neta};
 }
 
-let PYG_curMes=0, PYG_curCC='TOTAL', PYG_curTipo='todo', PYG_curDet='todos';
+let PYG_curMes=0, PYG_curCC='TOTAL', PYG_curTipo='todo', PYG_curDet='todos', PYG_curYear=2026;
 
 // ── CHARTS ──
-let PYG_evCh, PYG_resCh, PYG_ccCh;
+let PYG_evCh, PYG_margCh;
 
 function PYG_initCharts() {
   const ml = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m,'TOTAL')));
+  const labels = PYG_MONTHS.map(m => PYG_MNS[m]);
 
+  if(PYG_evCh) PYG_evCh.destroy();
   PYG_evCh = new Chart(document.getElementById('pyg_evChart'), {
     type:'bar',
-    data:{labels:['Enero','Febrero','Marzo','Abril'],datasets:[
+    data:{labels, datasets:[
       {label:'Ingresos',data:ml.map(m=>m.ing),backgroundColor:'rgba(122,92,26,0.55)',borderRadius:3,borderSkipped:false,order:2},
-      {label:'Gastos op.',data:ml.map(m=>m.gastos),backgroundColor:'rgba(139,43,26,0.55)',borderRadius:3,borderSkipped:false,order:2},
+      {label:'Gastos op.',data:ml.map(m=>m.gastos),backgroundColor:'rgba(139,43,26,0.45)',borderRadius:3,borderSkipped:false,order:2},
       {label:'Margen bruto',data:ml.map(m=>m.mb),type:'line',borderColor:'var(--green)',borderWidth:2,pointBackgroundColor:'var(--green)',pointRadius:4,fill:false,tension:0.3,order:1},
     ]},
     options:{responsive:true,maintainAspectRatio:false,
@@ -687,91 +717,55 @@ function PYG_initCharts() {
       scales:{x:{ticks:{color:PYG_TC,font:{size:10,family:'DM Mono'}},grid:{display:false}},
               y:{ticks:{color:PYG_TC,font:{size:9,family:'DM Mono'},callback:PYG_fmtk},grid:{color:PYG_GC},border:{display:false}}}}
   });
-
-  PYG_resCh = new Chart(document.getElementById('pyg_resChart'), {
-    type:'bar',
-    data:{labels:['Enero','Febrero','Marzo','Abril'],datasets:[{
-      label:'Resultado',data:ml.map(m=>m.res),
-      backgroundColor:ml.map(m=>m.res>=0?'rgba(26,107,74,0.7)':'rgba(139,43,26,0.7)'),
-      borderRadius:3,borderSkipped:false
-    }]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Resultado: '+PYG_fmtk(c.raw)}}},
-      scales:{x:{ticks:{color:PYG_TC,font:{size:10,family:'DM Mono'}},grid:{display:false}},
-              y:{ticks:{color:PYG_TC,font:{size:9,family:'DM Mono'},callback:PYG_fmtk},grid:{color:PYG_GC},border:{display:false}}}}
-  });
-
-  PYG_renderCCChart();
 }
 
 function PYG_updateEvChart() {
+  if(!PYG_evCh) return;
   const ml = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m, PYG_curCC)));
+  PYG_evCh.data.labels = PYG_MONTHS.map(m=>PYG_MNS[m]);
   PYG_evCh.data.datasets[0].data = ml.map(m=>m.ing);
   PYG_evCh.data.datasets[1].data = ml.map(m=>m.gastos);
   PYG_evCh.data.datasets[2].data = ml.map(m=>m.mb);
   PYG_evCh.update();
-  PYG_resCh.data.datasets[0].data = ml.map(m=>m.res);
-  PYG_resCh.data.datasets[0].backgroundColor = ml.map(m=>m.res>=0?'rgba(26,107,74,0.7)':'rgba(139,43,26,0.7)');
-  PYG_resCh.update();
 }
 
-function PYG_renderCCChart() {
-  const comm = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m,'COMUNICACION')));
-  const aapp = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m,'ASUNTOS PUBLICOS')));
-  if(PYG_ccCh) PYG_ccCh.destroy();
-  PYG_ccCh = new Chart(document.getElementById('pyg_ccChart'), {
-    type:'bar',
-    data:{labels:['Enero','Febrero','Marzo','Abril'],datasets:[
-      {label:'Com. Ingresos',data:comm.map(m=>m.ing),backgroundColor:'rgba(122,92,26,0.5)',borderRadius:3,borderSkipped:false},
-      {label:'AAPP Ingresos',data:aapp.map(m=>m.ing),backgroundColor:'rgba(26,63,107,0.5)',borderRadius:3,borderSkipped:false},
-      {label:'Com. Resultado',data:comm.map(m=>m.res),type:'line',borderColor:'var(--gold)',borderWidth:2,pointRadius:3,fill:false,tension:0.3},
-      {label:'AAPP Resultado',data:aapp.map(m=>m.res),type:'line',borderColor:'var(--blue)',borderWidth:2,pointRadius:3,fill:false,tension:0.3},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label+': '+PYG_fmtk(c.raw)}}},
-      scales:{x:{ticks:{color:PYG_TC,font:{size:10,family:'DM Mono'}},grid:{display:false}},
-              y:{ticks:{color:PYG_TC,font:{size:9,family:'DM Mono'},callback:PYG_fmtk},grid:{color:PYG_GC},border:{display:false}}}}
-  });
 
-  const c=PYG_getData(0,'COMUNICACION'), a=PYG_getData(0,'ASUNTOS PUBLICOS');
-  document.getElementById('ccMini').innerHTML=`
-    <div style="background:var(--gold-light);border:1px solid rgba(122,92,26,.15);border-radius:8px;padding:12px">
-      <div style="font-size:9px;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Comunicación · Acumulado</div>
-      <div style="font-size:16px;font-weight:600">${PYG_fmtD(c.ing)}</div>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;margin-top:3px;color:${c.neta>=0?'var(--green)':'var(--red)'}">Util. neta: ${PYG_fmtD(c.neta)}</div>
-      <div style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">Margen: ${PYG_pctFmt(c.neta,c.ing)}</div>
-    </div>
-    <div style="background:var(--blue-light);border:1px solid rgba(26,63,107,.15);border-radius:8px;padding:12px">
-      <div style="font-size:9px;color:var(--blue);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Asuntos Públicos · Acumulado</div>
-      <div style="font-size:16px;font-weight:600">${PYG_fmtD(a.ing)}</div>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;margin-top:3px;color:${a.neta>=0?'var(--green)':'var(--red)'}">Util. neta: ${PYG_fmtD(a.neta)}</div>
-      <div style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace">Margen: ${PYG_pctFmt(a.neta,a.ing)}</div>
-    </div>`;
+// ── PyG TABLE — always visible, gastos accordion ──
+let PYG_gastosOpen = false;
+
+function PYG_toggleGastos() {
+  PYG_gastosOpen = !PYG_gastosOpen;
+  PYG_renderPyG();
 }
 
-// ── PyG TABLE ──
 function PYG_renderPyG() {
+  const tbl = document.getElementById('pygTable');
   const showAll = PYG_curMes === 0;
   const months = PYG_MONTHS;
   const mData = months.map(m => PYG_getData(m, PYG_curCC));
   const totData = PYG_getData(0, PYG_curCC);
+  const cols = showAll ? months.length + 1 : 1;
 
-  const colLabel = showAll ? months.map(m=>`<th>${PYG_MNS[m]}</th>`).join('') + '<th>Acumulado</th>' : `<th colspan="3"></th><th>${PYG_MN[PYG_curMes]}</th>`;
+  const colLabel = showAll
+    ? months.map(m=>`<th>${PYG_MNS[m]}</th>`).join('') + '<th style="color:var(--text)">Acumulado</th>'
+    : `<th>${PYG_MN_ALL[PYG_curMes]}</th>`;
   let html = `<tr><th style="text-align:left">Concepto</th>${colLabel}</tr>`;
 
-  const row = (label, key, cls='', indent=false) => {
-    const lbl = indent ? `<span class="pyg-indent">${label}</span>` : label;
+  // Helper: regular data row (indented detail)
+  const row = (label, key, cls='') => {
+    const lbl = `<span class="pyg-indent">${label}</span>`;
     if(showAll){
       const cells = mData.map(d=>`<td class="${(d[key]||0)<0?'neg':''} ${cls}">${PYG_fmt(d[key]||0)}</td>`).join('');
       const tot = totData[key]||0;
-      return `<tr><td>${lbl}</td>${cells}<td class="${tot<0?'neg':''} ${cls}" style="font-weight:500">${PYG_fmtD(tot)}</td></tr>`;
+      return `<tr style="background:var(--surface2)"><td>${lbl}</td>${cells}<td class="${tot<0?'neg':''} ${cls}" style="font-weight:500">${PYG_fmtD(tot)}</td></tr>`;
     } else {
       const d = PYG_getData(PYG_curMes, PYG_curCC);
       const v = d[key]||0;
-      return `<tr><td>${lbl}</td><td colspan="3"></td><td class="${v<0?'neg':''} ${cls}">${PYG_fmtD(v)}</td></tr>`;
+      return `<tr style="background:var(--surface2)"><td>${lbl}</td><td class="${v<0?'neg':''} ${cls}">${PYG_fmtD(v)}</td></tr>`;
     }
   };
 
+  // Helper: subtotal / key line row
   const subtot = (label, key, extraCls='') => {
     if(showAll){
       const cells = mData.map(d=>{const v=d[key]||0;return `<td class="${v<0?'neg':''} ${extraCls}" style="font-weight:600">${PYG_fmt(v)}</td>`;}).join('');
@@ -780,86 +774,126 @@ function PYG_renderPyG() {
     } else {
       const d = PYG_getData(PYG_curMes, PYG_curCC);
       const v = d[key]||0;
-      return `<tr class="pyg-subtotal"><td>${label}</td><td colspan="3"></td><td class="${v<0?'neg':''} ${extraCls}">${PYG_fmtD(v)}</td></tr>`;
+      return `<tr class="pyg-subtotal"><td>${label}</td><td class="${v<0?'neg':''} ${extraCls}">${PYG_fmtD(v)}</td></tr>`;
     }
   };
 
-  const sec = t => `<tr class="pyg-section"><td colspan="${showAll?'6':'5'}">${t}</td></tr>`;
+  // Ingresos
+  html += subtot('Ingresos por servicios','ing','');
 
-  html += sec('INGRESOS');
-  html += row('Ingresos por servicios','ing','',true);
-  html += subtot('Total ingresos','ing','gold-c');
-
-  html += sec('COSTO DE VENTAS');
-  html += row('Costos directos','costo','neg',true);
-  html += subtot('Margen bruto','mb', totData.mb>=0?'pos':'neg');
-
-  html += sec('GASTOS OPERATIVOS');
-  html += row('Nómina y beneficios','nom','neg',true);
-  html += row('Servicios profesionales','serv','neg',true);
-  html += row('Instalaciones y tecnología','inst','neg',true);
-  html += row('Viajes y movilización','viaj','neg',true);
-  html += row('Otros gastos','otros','neg',true);
-  html += subtot('Total gastos operativos','gastos','neg');
-
-  html += sec('RESULTADO');
-  html += subtot('Utilidad antes de impuestos','res', totData.res>=0?'pos':'neg');
-
-  // Tax row — only when CC has positive result
+  // Costo de ventas (single line, no detail to expand)
   if(showAll){
-    const impCells = mData.map(d=>`<td class="neg">${d.imp>0?PYG_fmt(d.imp):'—'}</td>`).join('');
-    const totImp = totData.imp;
-    html += `<tr><td><span class="pyg-indent">Part. trabajadores e IR (33,34%)</span></td>${impCells}<td class="neg" style="font-weight:500">${totImp>0?PYG_fmtD(totImp):'—'}</td></tr>`;
+    const cells = mData.map(d=>`<td class="neg">${PYG_fmt(d.costo||0)}</td>`).join('');
+    html += `<tr><td><span style="color:var(--text-2)">(−) Costo de ventas</span></td>${cells}<td class="neg">${PYG_fmtD(totData.costo)}</td></tr>`;
   } else {
     const d = PYG_getData(PYG_curMes, PYG_curCC);
-    html += `<tr><td><span class="pyg-indent">Part. trabajadores e IR (33,34%)</span></td><td colspan="3"></td><td class="neg">${d.imp>0?PYG_fmtD(d.imp):'—'}</td></tr>`;
+    html += `<tr><td><span style="color:var(--text-2)">(−) Costo de ventas</span></td><td class="neg">${PYG_fmtD(d.costo)}</td></tr>`;
   }
 
-  // Utilidad neta
+  // Margen bruto — key line
+  html += subtot('Margen bruto','mb', totData.mb>=0?'pos':'neg');
+
+  // Gastos operativos — accordion header row
+  const arrow = PYG_gastosOpen ? '▾' : '▸';
+  const arrowTitle = PYG_gastosOpen ? 'Ocultar desglose' : 'Ver desglose';
   if(showAll){
-    const netaCells = mData.map(d=>`<td class="${d.neta>=0?'pos':'neg'}" style="font-size:13px;font-weight:700">${PYG_fmt(d.neta)}</td>`).join('');
+    const cells = mData.map(d=>`<td class="neg" style="font-weight:600">${PYG_fmt(d.gastos||0)}</td>`).join('');
+    const tot = totData.gastos||0;
+    html += `<tr class="pyg-subtotal" style="cursor:pointer" onclick="PYG_toggleGastos()" title="${arrowTitle}">
+      <td><span style="margin-right:6px;font-size:10px;color:var(--text-3)">${arrow}</span>(−) Gastos operativos</td>
+      ${cells}<td class="neg">${PYG_fmtD(tot)}</td></tr>`;
+  } else {
+    const d = PYG_getData(PYG_curMes, PYG_curCC);
+    html += `<tr class="pyg-subtotal" style="cursor:pointer" onclick="PYG_toggleGastos()" title="${arrowTitle}">
+      <td><span style="margin-right:6px;font-size:10px;color:var(--text-3)">${arrow}</span>(−) Gastos operativos</td>
+      <td class="neg">${PYG_fmtD(d.gastos)}</td></tr>`;
+  }
+
+  // Gastos accordion detail — only when open
+  if(PYG_gastosOpen){
+    html += row('Nómina y beneficios','nom','neg');
+    html += row('Servicios profesionales','serv','neg');
+    html += row('Instalaciones y tecnología','inst','neg');
+    html += row('Viajes y movilización','viaj','neg');
+    html += row('Otros gastos','otros','neg');
+  }
+
+  // Utilidad antes de impuestos
+  html += subtot('Utilidad antes de impuestos','res', totData.res>=0?'pos':'neg');
+
+  // Impuesto + Utilidad neta (solo en TOTAL)
+  if(showAll){
+    const totImp = totData.imp;
+    const impCells = mData.map(d=>`<td class="neg">${d.imp>0?PYG_fmt(d.imp):'—'}</td>`).join('');
+    html += `<tr><td><span style="color:var(--text-2);padding-left:14px">(−) Part. trab. e IR (33,34%)</span></td>${impCells}<td class="neg" style="font-weight:500">${totImp>0?PYG_fmtD(totImp):'—'}</td></tr>`;
+    const netaCells = mData.map(d=>`<td class="${d.neta>=0?'pos':'neg'}" style="font-weight:700">${PYG_fmt(d.neta)}</td>`).join('');
     const totNeta = totData.neta;
     html += `<tr class="pyg-total"><td>Utilidad neta</td>${netaCells}<td class="${totNeta>=0?'pos':'neg'}">${PYG_fmtD(totNeta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(totNeta,totData.ing)})</small></td></tr>`;
   } else {
     const d = PYG_getData(PYG_curMes, PYG_curCC);
-    html += `<tr class="pyg-total"><td>Utilidad neta</td><td colspan="3"></td><td class="${d.neta>=0?'pos':'neg'}">${PYG_fmtD(d.neta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(d.neta,d.ing)})</small></td></tr>`;
+    html += `<tr><td><span style="color:var(--text-2);padding-left:14px">(−) Part. trab. e IR (33,34%)</span></td><td class="neg">${d.imp>0?PYG_fmtD(d.imp):'—'}</td></tr>`;
+    html += `<tr class="pyg-total"><td>Utilidad neta</td><td class="${d.neta>=0?'pos':'neg'}">${PYG_fmtD(d.neta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(d.neta,d.ing)})</small></td></tr>`;
   }
 
-  document.getElementById('pygTable').innerHTML = html;
-
-  // Badge
-  const b = document.getElementById('pygBadge');
-  b.style.background = PYG_curCC==='COMUNICACION'?'var(--gold-light)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue-light)':'var(--surface2)';
-  b.style.color = PYG_curCC==='COMUNICACION'?'var(--gold)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue)':'var(--text-2)';
-  b.textContent = PYG_curCC==='TOTAL'?'Consolidado':PYG_curCC==='COMUNICACION'?'Comunicación':'Asuntos Públicos';
+  tbl.innerHTML = html;
 }
 
-// ── KPIs ──
-function PYG_renderKPIs() {
+
+// ── SUMMARY WATERFALL TABLE ──
+function PYG_renderSummary() {
   const d = PYG_getData(PYG_curMes, PYG_curCC);
-  const lbl = PYG_curMes===0 ? 'Acumulado '+PYG_MONTHS.length+' meses' : PYG_MN[PYG_curMes];
-  document.getElementById('kIng').textContent = PYG_fmtD(d.ing);
-  document.getElementById('kIngSub').textContent = lbl;
-  document.getElementById('kCosto').textContent = PYG_fmtD(d.costo);
-  document.getElementById('kCostoSub').textContent = PYG_pctFmt(d.costo,d.ing)+' de ingresos';
-  document.getElementById('kMB').className = 'metric-value '+(d.mb>=0?'pos':'neg');
-  document.getElementById('kMB').textContent = PYG_fmtD(d.mb);
-  const mp = document.getElementById('kMBPill');
-  mp.className = 'pill '+(d.mb>=0?'pill-pos':'pill-neg');
-  mp.textContent = PYG_pctFmt(d.mb,d.ing);
-  document.getElementById('kGasto').textContent = PYG_fmtD(d.gastos);
-  document.getElementById('kGastoSub').textContent = PYG_pctFmt(d.gastos,d.ing)+' de ingresos';
-  document.getElementById('kRes').className = 'metric-value '+(d.res>=0?'pos':'neg');
-  document.getElementById('kRes').textContent = PYG_fmtD(d.res);
-  const rp = document.getElementById('kResPill');
-  rp.className = 'pill '+(d.res>=0?'pill-pos':'pill-neg');
-  rp.textContent = PYG_pctFmt(d.res,d.ing);
-  document.getElementById('kUN').className = 'metric-value '+(d.neta>=0?'pos':'neg');
-  document.getElementById('kUN').textContent = PYG_fmtD(d.neta);
-  const unLabel = PYG_curCC === 'TOTAL' ? 'Margen neto (después imp.): ' : 'Resultado antes imp.: ';
-  document.getElementById('kUNSub').textContent = unLabel+PYG_pctFmt(d.neta,d.ing);
-  // Update KPI label
-  document.getElementById('kUN').previousElementSibling.textContent = PYG_curCC === 'TOTAL' ? 'Utilidad neta' : 'Resultado antes imp.';
+  const pctBar = (v, tot, color) => {
+    const pct = tot===0 ? 0 : Math.min(Math.abs(v/tot)*100, 100);
+    return `<div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;min-width:60px">
+      <div style="width:${pct.toFixed(1)}%;height:5px;border-radius:3px;background:${color}"></div></div>`;
+  };
+
+  const periodLbl = PYG_curMes===0
+    ? `Acumulado ${PYG_MONTHS.length} meses · ${PYG_curYear}`
+    : `${PYG_MN[PYG_curMes]} ${PYG_curYear}`;
+  document.getElementById('pyg_summaryPeriod').textContent = periodLbl;
+
+  const isTotal = PYG_curCC === 'TOTAL';
+
+  const rows = [
+    { label:'Ingresos por servicios', val:d.ing, pct:null, color:'var(--green)', indent:false, bold:true, showBar:false },
+    { label:'(−) Costo de ventas', val:-d.costo, pct:PYG_pctFmt(d.costo,d.ing), color:'var(--red)', indent:true, bold:false, showBar:true },
+    { label:'Margen bruto', val:d.mb, pct:PYG_pctFmt(d.mb,d.ing), color:d.mb>=0?'var(--green)':'var(--red)', indent:false, bold:true, divider:true, showBar:false },
+    { label:'(−) Gastos operativos', val:-d.gastos, pct:PYG_pctFmt(d.gastos,d.ing), color:'var(--red)', indent:true, bold:false, showBar:true },
+    { label:'Utilidad antes de impuestos', val:d.res, pct:PYG_pctFmt(d.res,d.ing), color:d.res>=0?'var(--green)':'var(--red)', indent:false, bold:true, divider:true, showBar:false },
+  ];
+
+  if(isTotal) {
+    rows.push({ label:'(−) Part. trabajadores e IR (33,34%)', val:-d.imp, pct:null, color:'var(--red)', indent:true, bold:false, showBar:false });
+    rows.push({ label:'Utilidad neta', val:d.neta, pct:PYG_pctFmt(d.neta,d.ing), color:d.neta>=0?'var(--green)':'var(--red)', indent:false, bold:true, divider:true, big:true, showBar:false });
+  }
+
+  let html = '';
+  rows.forEach(r => {
+    const valClass = r.val < 0 ? 'neg' : '';
+    const borderTop = r.divider ? 'border-top:2px solid var(--border-strong);padding-top:10px;' : '';
+    const fontSize = r.big ? 'font-size:16px;' : '';
+    const fontWeight = r.bold ? 'font-weight:600;' : 'font-weight:400;color:var(--text-2);';
+    const pl = r.indent ? 'padding-left:18px;' : '';
+    html += `<tr>
+      <td style="${borderTop}${pl}${fontWeight}font-size:13px">${r.label}</td>
+      <td style="${borderTop}text-align:right;font-family:'DM Mono',monospace;${fontSize}${fontWeight}${r.val<0?'color:var(--red)':'color:'+(r.bold?'var(--text)':'var(--text-2)')}">
+        ${r.val===0?'—':PYG_fmtD(r.val)}</td>
+      <td style="${borderTop}text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-3);padding-left:12px;min-width:55px">${r.pct||''}</td>
+      <td style="${borderTop}padding-left:16px;width:180px">
+        ${r.showBar && d.ing>0 ? pctBar(r.val, d.ing, r.color) : ''}
+      </td>
+    </tr>`;
+  });
+  document.getElementById('pyg_summaryTable').innerHTML = html;
+}
+
+// ── DETAIL TOGGLE ──
+function PYG_toggleDetail() {
+  PYG_detailOpen = !PYG_detailOpen;
+  const btn = document.getElementById('pyg_detailToggle');
+  btn.textContent = PYG_detailOpen ? '▾ Ocultar detalle' : '▸ Ver detalle';
+  PYG_renderPyG();
 }
 
 // ── GASTOS WATERFALL ──
@@ -883,66 +917,95 @@ function PYG_renderGastos() {
     </div>`).join('');
 }
 
-// ── MARGIN TABLE ──
+// ── MARGIN CHART ──
 function PYG_renderMargenes() {
+  const sel = document.getElementById('pyg_margMetric');
+  if(!sel) return;
+  const metric = sel.value;
+
+  const metricFns = {
+    mb:     d => d.ing===0 ? null : d.mb/d.ing*100,
+    gastos: d => d.ing===0 ? null : d.gastos/d.ing*100,
+    res:    d => d.ing===0 ? null : d.res/d.ing*100,
+    neta:   d => d.ing===0 ? null : d.neta/d.ing*100,
+  };
+  const fn = metricFns[metric];
   const ccs = ['COMUNICACION','ASUNTOS PUBLICOS','TOTAL'];
-  const ccLabels = {'COMUNICACION':'Comunicación','ASUNTOS PUBLICOS':'Asuntos Públicos','TOTAL':'Consolidado'};
+  const ccColors = {
+    'COMUNICACION':    {line:'rgba(122,92,26,1)',   fill:'rgba(122,92,26,0.08)'},
+    'ASUNTOS PUBLICOS':{line:'rgba(26,63,107,1)',   fill:'rgba(26,63,107,0.08)'},
+    'TOTAL':           {line:'rgba(26,107,74,1)',   fill:'rgba(26,107,74,0.08)'},
+  };
+  const ccLabel = {'COMUNICACION':'Comunicación','ASUNTOS PUBLICOS':'Asuntos Públicos','TOTAL':'Consolidado'};
+  const labels = PYG_MONTHS.map(m=>PYG_MNS[m]);
 
-  // Header: metrics as rows, months + acumulado as columns
-  const colHdrs = PYG_MONTHS.map(m=>`<th>${PYG_MN[m]}</th>`).join('') + '<th>Acumulado</th>';
-  let html = `<tr><th style="text-align:left">Métrica</th>${colHdrs}</tr>`;
+  const datasets = ccs.map(cc => ({
+    label: ccLabel[cc],
+    data: PYG_MONTHS.map(m => fn(PYG_getData(m, cc))),
+    borderColor: ccColors[cc].line,
+    backgroundColor: ccColors[cc].fill,
+    borderWidth: 2,
+    pointRadius: 4,
+    pointBackgroundColor: ccColors[cc].line,
+    fill: false,
+    tension: 0.3,
+  }));
 
-  const metrics = [
-    {label:'Margen bruto %', fn:(d)=>PYG_pctFmt(d.mb,d.ing), positiveBetter:true},
-    {label:'Gastos / Ingresos %', fn:(d)=>PYG_pctFmt(d.gastos,d.ing), positiveBetter:false},
-    {label:'Resultado antes imp. %', fn:(d)=>PYG_pctFmt(d.res,d.ing), positiveBetter:true},
-    {label:'Margen neto %', fn:(d)=>PYG_pctFmt(d.neta,d.ing), positiveBetter:true},
-  ];
-
-  // One section per CC
-  ccs.forEach(cc => {
-    html += `<tr><td colspan="${PYG_MONTHS.length+2}" style="padding-top:14px;padding-bottom:4px;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:${cc==='COMUNICACION'?'var(--gold)':cc==='ASUNTOS PUBLICOS'?'var(--blue)':'var(--text-3)'};font-family:'DM Mono',monospace;border-bottom:none">${ccLabels[cc]}</td></tr>`;
-    metrics.forEach(m => {
-      const mVals = PYG_MONTHS.map(mo => PYG_getData(mo, cc));
-      const totVal = PYG_getData(0, cc);
-      const cells = mVals.map(d=>{
-        const v = parseFloat(d.res/d.ing*100);
-        const raw = m.fn(d);
-        return `<td>${raw}</td>`;
-      }).join('');
-      html += `<tr><td>${m.label}</td>${cells}<td style="font-weight:600">${m.fn(totVal)}</td></tr>`;
-    });
+  if(PYG_margCh) PYG_margCh.destroy();
+  PYG_margCh = new Chart(document.getElementById('pyg_margChart'), {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'top',labels:{font:{family:'DM Mono',size:10},color:PYG_TC,boxWidth:10,padding:16}},
+        tooltip:{callbacks:{label: c => `${c.dataset.label}: ${c.raw===null?'—':c.raw.toFixed(1).replace('.',',')+'\u202f%'}`}}
+      },
+      scales:{
+        x:{ticks:{color:PYG_TC,font:{size:10,family:'DM Mono'}},grid:{display:false}},
+        y:{ticks:{color:PYG_TC,font:{size:9,family:'DM Mono'},callback:v=>v.toFixed(0)+'\u202f%'},grid:{color:PYG_GC},border:{display:false}}
+      }
+    }
   });
-
-  document.getElementById('margTable').innerHTML = html;
 }
 
 // ── FILTERS ──
-function PYG_setMes(mes, btn) {
-  PYG_curMes = mes;
-  document.querySelectorAll('.pyg-mes').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  PYG_render();
-}
-function PYG_setCC(cc, btn) {
-  PYG_curCC = cc;
-  document.querySelectorAll('.pyg-cc').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+function PYG_setYear(year) {
+  PYG_curYear = parseInt(year);
+  PYG_RAW = PYG_ALL_RAW[PYG_curYear] || [];
+  PYG_MONTHS = PYG_MONTHS_BY_YEAR[PYG_curYear] || [];
+  // Rebuild mes select options
+  const mesEl = document.getElementById('pyg_mesSelect');
+  mesEl.innerHTML = '<option value="0">Acumulado</option>';
+  PYG_MONTHS.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = PYG_MN_ALL[m];
+    mesEl.appendChild(opt);
+  });
+  PYG_curMes = 0;
+  mesEl.value = '0';
   PYG_updateEvChart();
   PYG_render();
 }
 
-function PYG_setTipo(tipo, btn) {
-  PYG_curTipo = tipo;
-  PYG_curDet = 'todos';
-  document.querySelectorAll('.pyg-tipo').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+function PYG_setMesSelect(val) {
+  PYG_curMes = parseInt(val);
+  PYG_render();
+}
+
+function PYG_setCCSelect(val) {
+  PYG_curCC = val;
+  PYG_updateBadge();
   PYG_updateEvChart();
   PYG_render();
 }
 
 function PYG_setTipoSelect(val) {
-  PYG_setTipo(val, null);
+  PYG_curTipo = val;
+  PYG_curDet = 'todos';
+  document.getElementById('pyg_detSelect').value = 'todos';
+  PYG_updateEvChart();
+  PYG_render();
 }
 
 function PYG_setDetSelect(val) {
@@ -951,33 +1014,23 @@ function PYG_setDetSelect(val) {
   PYG_render();
 }
 
-function PYG_setDet(det, btn) {
-  PYG_curDet = det;
-  document.querySelectorAll('.pyg-det').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  PYG_updateEvChart();
-  PYG_render();
+function PYG_updateBadge() {
+  const badge = document.getElementById('pyg_badge');
+  if(!badge) return;
+  const ccLbl = PYG_curCC==='TOTAL'?'Consolidado':PYG_curCC==='COMUNICACION'?'Comunicación':'Asuntos Públicos';
+  const mesLbl = PYG_curMes===0?'Acumulado':PYG_MN_ALL[PYG_curMes];
+  badge.textContent = ccLbl+' · '+mesLbl;
+  badge.style.background = PYG_curCC==='COMUNICACION'?'var(--gold-light)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue-light)':'var(--surface2)';
+  badge.style.color = PYG_curCC==='COMUNICACION'?'var(--gold)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue)':'var(--text-2)';
 }
 
-function PYG_updateDetFilters() {
-  const cc = document.getElementById('pyg-det-bar');
-  if (!cc) return;
-  // Show/hide detail chips based on tipo and grupo
-  document.querySelectorAll('.pyg-det[data-det]').forEach(b => {
-    const det = b.dataset.det;
-    if (det === 'todos') { b.style.display=''; return; }
-    const meta = {A1:'fija',A2:'fija',A10:'especial',A11:'especial',A13:'especial'};
-    const grp = {A1:'COMUNICACION',A2:'ASUNTOS PUBLICOS',A10:'COMUNICACION',A11:'ASUNTOS PUBLICOS',A13:'ASUNTOS PUBLICOS'};
-    let show = true;
-    if (PYG_curTipo === 'fija' && meta[det] !== 'fija') show = false;
-    if (PYG_curTipo === 'especial' && meta[det] !== 'especial') show = false;
-    if (PYG_curCC === 'COMUNICACION' && grp[det] !== 'COMUNICACION') show = false;
-    if (PYG_curCC === 'ASUNTOS PUBLICOS' && grp[det] !== 'ASUNTOS PUBLICOS') show = false;
-    b.style.display = show ? '' : 'none';
-  });
+function PYG_render() {
+  PYG_updateBadge();
+  PYG_renderSummary();
+  PYG_renderPyG();
+  PYG_renderGastos();
+  PYG_renderMargenes();
 }
-
-function PYG_render() { PYG_renderKPIs(); PYG_renderPyG(); PYG_renderGastos(); PYG_renderMargenes(); }
 
 // Lazy-init on tab click
 
@@ -1913,5 +1966,51 @@ function FAC_init(){
   FAC_render();
 }
 </script>
+
+<script>
+// ── AUTH ──
+const USERS = {
+  'keyword_connect': 'KwC!774xZa',
+  'keyword_portal':  'Kwp#903!Mn'
+};
+const SESSION_KEY = 'kw_dash_auth';
+
+function checkSession() {
+  try {
+    const s = sessionStorage.getItem(SESSION_KEY);
+    if (s && USERS[s] !== undefined) {
+      document.getElementById('loginOverlay').classList.add('hidden');
+    }
+  } catch(e) {}
+}
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  if (USERS[u] && USERS[u] === p) {
+    try { sessionStorage.setItem(SESSION_KEY, u); } catch(e) {}
+    document.getElementById('loginOverlay').classList.add('hidden');
+    err.textContent = '';
+  } else {
+    err.textContent = 'Usuario o contraseña incorrectos.';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+  }
+}
+
+function doLogout() {
+  try { sessionStorage.removeItem(SESSION_KEY); } catch(e) {}
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('loginUser').focus();
+}
+
+// Check on load
+checkSession();
+</script>
+
 </body>
 </html>
