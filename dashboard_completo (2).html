@@ -522,8 +522,8 @@ renderCxc();
     <div style="width:1px;height:20px;background:var(--border)"></div>
     <div style="display:flex;align-items:center;gap:6px">
       <label style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em">Período</label>
-      <select id="pyg_mesSelect" onchange="PYG_setMesSelect(this.value)" style="font-size:12px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer">
-        <option value="0">Acumulado</option>
+      <select id="pyg_mesSelect" multiple onchange="PYG_setMesSelect(this)" style="font-size:12px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer;min-width:120px;max-height:32px;transition:max-height .2s" onfocus="this.style.maxHeight='200px'" onblur="this.style.maxHeight='32px'" title="Ctrl+clic para seleccionar varios">
+        <option value="0" selected>Acumulado</option>
         <option value="1">Enero</option>
         <option value="2">Febrero</option>
         <option value="3">Marzo</option>
@@ -665,7 +665,12 @@ const PYG_pctFmt = (v,t) => {
 // ── DATA ENGINE ──
 function PYG_getRows(mes, cc) {
   let rows = PYG_RAW;
-  if (mes > 0) rows = rows.filter(r => r.month === mes);
+  // mes can be: 0 (all), single int, or array
+  if (Array.isArray(mes)) {
+    if (!mes.includes(0)) rows = rows.filter(r => mes.includes(r.month));
+  } else if (mes > 0) {
+    rows = rows.filter(r => r.month === mes);
+  }
   if (cc === 'COMUNICACION') rows = rows.filter(r => r.grupo === 'COMUNICACION');
   else if (cc === 'ASUNTOS PUBLICOS') rows = rows.filter(r => r.grupo === 'ASUNTOS PUBLICOS');
   if (PYG_curTipo === 'fija') rows = rows.filter(r => r.tipo_neg === 'fija');
@@ -683,22 +688,19 @@ function PYG_aggregate(rows) {
 
 function PYG_calcTax(mes, cc) {
   if (cc !== 'TOTAL') return 0;
-  // For closed years: use actual tax recorded in books, prorated by month
+  // Normalize mes to array
+  const isAll = mes === 0 || (Array.isArray(mes) && mes.includes(0)) || (Array.isArray(mes) && mes.length === 0);
   const actualAnnual = PYG_TAX_ACTUAL[PYG_curYear];
   if (actualAnnual !== null && actualAnnual !== undefined) {
-    if (mes === 0) {
-      // Acumulado: full actual tax
-      return actualAnnual;
-    } else {
-      // Monthly: prorate by share of annual result
-      const annualRes = PYG_ALL_RAW[PYG_curYear].reduce((a,r)=>a+r.res,0);
-      const monthRes = PYG_getRows(mes,'TOTAL').reduce((a,r)=>a+r.res,0);
-      if (annualRes === 0) return 0;
-      return Math.max(0, Math.round(actualAnnual * (monthRes / annualRes) * 100) / 100);
-    }
+    if (isAll) return actualAnnual;
+    const mArr = Array.isArray(mes) ? mes : [mes];
+    const annualRes = PYG_ALL_RAW[PYG_curYear].reduce((a,r)=>a+r.res,0);
+    const periodRes = mArr.reduce((sum,m) => sum + PYG_getRows(m,'TOTAL').reduce((a,r)=>a+r.res,0), 0);
+    if (annualRes === 0) return 0;
+    return Math.max(0, Math.round(actualAnnual * (periodRes / annualRes) * 100) / 100);
   }
-  // For open years (2026+): estimate at 33.34% if result positive
-  const rows = PYG_getRows(mes, 'TOTAL');
+  // Open year: estimate 33.34% on positive consolidated result
+  const rows = isAll ? PYG_getRows(0,'TOTAL') : (Array.isArray(mes)?mes:[mes]).flatMap(m=>PYG_getRows(m,'TOTAL'));
   const totalRes = rows.reduce((a,r)=>a+r.res,0);
   return totalRes > 0 ? Math.round(totalRes * PYG_TAX * 100) / 100 : 0;
 }
@@ -711,7 +713,8 @@ function PYG_getData(mes, cc) {
   return {...d, imp, neta};
 }
 
-let PYG_curMes=0, PYG_curCC='TOTAL', PYG_curTipo='todo', PYG_curDet='todos', PYG_curYear=2026;
+// PYG_curMes: array of selected months; [0] means all/acumulado
+let PYG_curMes=[0], PYG_curCC='TOTAL', PYG_curTipo='todo', PYG_curDet='todos', PYG_curYear=2026;
 
 // ── CHARTS ──
 let PYG_evCh, PYG_margCh;
@@ -737,11 +740,17 @@ function PYG_initCharts() {
 
 function PYG_updateEvChart() {
   if(!PYG_evCh) return;
+  const isAll = PYG_curMes.includes(0) || PYG_curMes.length === 0;
   const ml = PYG_MONTHS.map(m => PYG_aggregate(PYG_getRows(m, PYG_curCC)));
   PYG_evCh.data.labels = PYG_MONTHS.map(m=>PYG_MNS[m]);
   PYG_evCh.data.datasets[0].data = ml.map(m=>m.ing);
   PYG_evCh.data.datasets[1].data = ml.map(m=>m.gastos);
   PYG_evCh.data.datasets[2].data = ml.map(m=>m.mb);
+  // Highlight selected months
+  PYG_evCh.data.datasets[0].backgroundColor = PYG_MONTHS.map(m =>
+    isAll || PYG_curMes.includes(m) ? 'rgba(122,92,26,0.55)' : 'rgba(122,92,26,0.18)');
+  PYG_evCh.data.datasets[1].backgroundColor = PYG_MONTHS.map(m =>
+    isAll || PYG_curMes.includes(m) ? 'rgba(139,43,26,0.45)' : 'rgba(139,43,26,0.15)');
   PYG_evCh.update();
 }
 
@@ -756,77 +765,57 @@ function PYG_toggleGastos() {
 
 function PYG_renderPyG() {
   const tbl = document.getElementById('pygTable');
-  const showAll = PYG_curMes === 0;
-  const months = PYG_MONTHS;
-  const mData = months.map(m => PYG_getData(m, PYG_curCC));
-  const totData = PYG_getData(0, PYG_curCC);
-  const cols = showAll ? months.length + 1 : 1;
 
-  const colLabel = showAll
-    ? months.map(m=>`<th>${PYG_MNS[m]}</th>`).join('') + '<th style="color:var(--text)">Acumulado</th>'
-    : `<th>${PYG_MN_ALL[PYG_curMes]}</th>`;
+  // Determine which months to show as columns
+  const isAll = PYG_curMes.includes(0) || PYG_curMes.length === 0;
+  const months = isAll ? PYG_MONTHS : PYG_curMes.filter(m => PYG_MONTHS.includes(m));
+  const mData  = months.map(m => PYG_getData(m, PYG_curCC));
+  // Total column = sum of selected months
+  const totData = PYG_getData(isAll ? 0 : PYG_curMes, PYG_curCC);
+  const showTotCol = months.length > 1; // only show total col when >1 month
+
+  const colLabel = months.map(m=>`<th>${PYG_MNS[m]}</th>`).join('')
+    + (showTotCol ? `<th style="color:var(--text)">Total</th>` : '');
   let html = `<tr><th style="text-align:left">Concepto</th>${colLabel}</tr>`;
 
-  // Helper: regular data row (indented detail)
   const row = (label, key, cls='') => {
     const lbl = `<span class="pyg-indent">${label}</span>`;
-    if(showAll){
-      const cells = mData.map(d=>`<td class="${(d[key]||0)<0?'neg':''} ${cls}">${PYG_fmt(d[key]||0)}</td>`).join('');
-      const tot = totData[key]||0;
-      return `<tr style="background:var(--surface2)"><td>${lbl}</td>${cells}<td class="${tot<0?'neg':''} ${cls}" style="font-weight:500">${PYG_fmtD(tot)}</td></tr>`;
-    } else {
-      const d = PYG_getData(PYG_curMes, PYG_curCC);
-      const v = d[key]||0;
-      return `<tr style="background:var(--surface2)"><td>${lbl}</td><td class="${v<0?'neg':''} ${cls}">${PYG_fmtD(v)}</td></tr>`;
-    }
+    const cells = mData.map(d=>`<td class="${(d[key]||0)<0?'neg':''} ${cls}">${PYG_fmt(d[key]||0)}</td>`).join('');
+    const tot = totData[key]||0;
+    const totCell = showTotCol ? `<td class="${tot<0?'neg':''} ${cls}" style="font-weight:500">${PYG_fmtD(tot)}</td>` : '';
+    return `<tr style="background:var(--surface2)"><td>${lbl}</td>${cells}${totCell}</tr>`;
   };
 
-  // Helper: subtotal / key line row
   const subtot = (label, key, extraCls='') => {
-    if(showAll){
-      const cells = mData.map(d=>{const v=d[key]||0;return `<td class="${v<0?'neg':''} ${extraCls}" style="font-weight:600">${PYG_fmt(v)}</td>`;}).join('');
-      const tot = totData[key]||0;
-      return `<tr class="pyg-subtotal"><td>${label}</td>${cells}<td class="${tot<0?'neg':''} ${extraCls}">${PYG_fmtD(tot)}</td></tr>`;
-    } else {
-      const d = PYG_getData(PYG_curMes, PYG_curCC);
-      const v = d[key]||0;
-      return `<tr class="pyg-subtotal"><td>${label}</td><td class="${v<0?'neg':''} ${extraCls}">${PYG_fmtD(v)}</td></tr>`;
-    }
+    const cells = mData.map(d=>{const v=d[key]||0;return `<td class="${v<0?'neg':''} ${extraCls}" style="font-weight:600">${PYG_fmt(v)}</td>`;}).join('');
+    const tot = totData[key]||0;
+    const totCell = showTotCol ? `<td class="${tot<0?'neg':''} ${extraCls}">${PYG_fmtD(tot)}</td>` : '';
+    return `<tr class="pyg-subtotal"><td>${label}</td>${cells}${totCell}</tr>`;
   };
 
   // Ingresos
   html += subtot('Ingresos por servicios','ing','');
 
-  // Costo de ventas (single line, no detail to expand)
-  if(showAll){
-    const cells = mData.map(d=>`<td class="neg">${PYG_fmt(d.costo||0)}</td>`).join('');
-    html += `<tr><td><span style="color:var(--text-2)">(−) Costo de ventas</span></td>${cells}<td class="neg">${PYG_fmtD(totData.costo)}</td></tr>`;
-  } else {
-    const d = PYG_getData(PYG_curMes, PYG_curCC);
-    html += `<tr><td><span style="color:var(--text-2)">(−) Costo de ventas</span></td><td class="neg">${PYG_fmtD(d.costo)}</td></tr>`;
-  }
+  // Costo de ventas
+  const costoTot = totData.costo||0;
+  const costoTotCell = showTotCol ? `<td class="neg">${PYG_fmtD(costoTot)}</td>` : '';
+  html += `<tr><td><span style="color:var(--text-2)">(−) Costo de ventas</span></td>`
+        + mData.map(d=>`<td class="neg">${PYG_fmt(d.costo||0)}</td>`).join('')
+        + costoTotCell + `</tr>`;
 
-  // Margen bruto — key line
+  // Margen bruto
   html += subtot('Margen bruto','mb', totData.mb>=0?'pos':'neg');
 
-  // Gastos operativos — accordion header row
+  // Gastos operativos — accordion
   const arrow = PYG_gastosOpen ? '▾' : '▸';
-  const arrowTitle = PYG_gastosOpen ? 'Ocultar desglose' : 'Ver desglose';
-  if(showAll){
-    const cells = mData.map(d=>`<td class="neg" style="font-weight:600">${PYG_fmt(d.gastos||0)}</td>`).join('');
-    const tot = totData.gastos||0;
-    html += `<tr class="pyg-subtotal" style="cursor:pointer" onclick="PYG_toggleGastos()" title="${arrowTitle}">
-      <td><span style="margin-right:6px;font-size:10px;color:var(--text-3)">${arrow}</span>(−) Gastos operativos</td>
-      ${cells}<td class="neg">${PYG_fmtD(tot)}</td></tr>`;
-  } else {
-    const d = PYG_getData(PYG_curMes, PYG_curCC);
-    html += `<tr class="pyg-subtotal" style="cursor:pointer" onclick="PYG_toggleGastos()" title="${arrowTitle}">
-      <td><span style="margin-right:6px;font-size:10px;color:var(--text-3)">${arrow}</span>(−) Gastos operativos</td>
-      <td class="neg">${PYG_fmtD(d.gastos)}</td></tr>`;
-  }
+  const gastosCells = mData.map(d=>`<td class="neg" style="font-weight:600">${PYG_fmt(d.gastos||0)}</td>`).join('');
+  const gastosTot = totData.gastos||0;
+  const gastosTotCell = showTotCol ? `<td class="neg">${PYG_fmtD(gastosTot)}</td>` : '';
+  html += `<tr class="pyg-subtotal" style="cursor:pointer" onclick="PYG_toggleGastos()" title="${PYG_gastosOpen?'Ocultar':'Ver'} desglose">
+    <td><span style="margin-right:6px;font-size:10px;color:var(--text-3)">${arrow}</span>(−) Gastos operativos</td>
+    ${gastosCells}${gastosTotCell}</tr>`;
 
-  // Gastos accordion detail — only when open
-  if(PYG_gastosOpen){
+  if (PYG_gastosOpen) {
     html += row('Nómina y beneficios','nom','neg');
     html += row('Servicios profesionales','serv','neg');
     html += row('Instalaciones y tecnología','inst','neg');
@@ -834,22 +823,21 @@ function PYG_renderPyG() {
     html += row('Otros gastos','otros','neg');
   }
 
-  // Utilidad antes de impuestos
+  // Utilidad antes imp.
   html += subtot('Utilidad antes de impuestos','res', totData.res>=0?'pos':'neg');
 
-  // Impuesto + Utilidad neta (solo en TOTAL)
-  if(showAll){
-    const totImp = totData.imp;
-    const impCells = mData.map(d=>`<td class="neg">${d.imp>0?PYG_fmt(d.imp):'—'}</td>`).join('');
-    html += `<tr><td><span style="color:var(--text-2);padding-left:14px">(−) Part. trab. e IR (33,34%)</span></td>${impCells}<td class="neg" style="font-weight:500">${totImp>0?PYG_fmtD(totImp):'—'}</td></tr>`;
-    const netaCells = mData.map(d=>`<td class="${d.neta>=0?'pos':'neg'}" style="font-weight:700">${PYG_fmt(d.neta)}</td>`).join('');
-    const totNeta = totData.neta;
-    html += `<tr class="pyg-total"><td>Utilidad neta</td>${netaCells}<td class="${totNeta>=0?'pos':'neg'}">${PYG_fmtD(totNeta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(totNeta,totData.ing)})</small></td></tr>`;
-  } else {
-    const d = PYG_getData(PYG_curMes, PYG_curCC);
-    html += `<tr><td><span style="color:var(--text-2);padding-left:14px">(−) Part. trab. e IR (33,34%)</span></td><td class="neg">${d.imp>0?PYG_fmtD(d.imp):'—'}</td></tr>`;
-    html += `<tr class="pyg-total"><td>Utilidad neta</td><td class="${d.neta>=0?'pos':'neg'}">${PYG_fmtD(d.neta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(d.neta,d.ing)})</small></td></tr>`;
-  }
+  // Impuesto + Neta
+  const impCells = mData.map(d=>`<td class="neg">${d.imp>0?PYG_fmt(d.imp):'—'}</td>`).join('');
+  const impTot = totData.imp;
+  const impTotCell = showTotCol ? `<td class="neg" style="font-weight:500">${impTot>0?PYG_fmtD(impTot):'—'}</td>` : '';
+  html += `<tr><td><span style="color:var(--text-2);padding-left:14px">(−) Part. trab. e IR (33,34%)</span></td>${impCells}${impTotCell}</tr>`;
+
+  const netaCells = mData.map(d=>`<td class="${d.neta>=0?'pos':'neg'}" style="font-weight:700">${PYG_fmt(d.neta)}</td>`).join('');
+  const totNeta = totData.neta;
+  const netaTotCell = showTotCol
+    ? `<td class="${totNeta>=0?'pos':'neg'}">${PYG_fmtD(totNeta)} <small style="color:var(--text-3);font-weight:400">(${PYG_pctFmt(totNeta,totData.ing)})</small></td>`
+    : ``;
+  html += `<tr class="pyg-total"><td>Utilidad neta</td>${netaCells}${netaTotCell}</tr>`;
 
   tbl.innerHTML = html;
 }
@@ -857,16 +845,19 @@ function PYG_renderPyG() {
 
 // ── SUMMARY WATERFALL TABLE ──
 function PYG_renderSummary() {
-  const d = PYG_getData(PYG_curMes, PYG_curCC);
+  const isAll = PYG_curMes.includes(0) || PYG_curMes.length === 0;
+  const d = PYG_getData(isAll ? 0 : PYG_curMes, PYG_curCC);
   const pctBar = (v, tot, color) => {
     const pct = tot===0 ? 0 : Math.min(Math.abs(v/tot)*100, 100);
     return `<div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;min-width:60px">
       <div style="width:${pct.toFixed(1)}%;height:5px;border-radius:3px;background:${color}"></div></div>`;
   };
 
-  const periodLbl = PYG_curMes===0
+  const periodLbl = (isAll || PYG_curMes.includes(0))
     ? `Acumulado ${PYG_MONTHS.length} meses · ${PYG_curYear}`
-    : `${PYG_MN[PYG_curMes]} ${PYG_curYear}`;
+    : PYG_curMes.length === 1
+      ? `${PYG_MN_ALL[PYG_curMes[0]]} ${PYG_curYear}`
+      : `${PYG_MNS[PYG_curMes[0]]}–${PYG_MNS[PYG_curMes[PYG_curMes.length-1]]} ${PYG_curYear}`;
   document.getElementById('pyg_summaryPeriod').textContent = periodLbl;
 
   const isTotal = PYG_curCC === 'TOTAL';
@@ -1002,14 +993,26 @@ function PYG_setYear(year) {
     opt.value = m; opt.textContent = PYG_MN_ALL[m];
     mesEl.appendChild(opt);
   });
-  PYG_curMes = 0;
+  PYG_curMes = [0];
   mesEl.value = '0';
   PYG_updateEvChart();
   PYG_render();
 }
 
-function PYG_setMesSelect(val) {
-  PYG_curMes = parseInt(val);
+function PYG_setMesSelect(sel) {
+  const vals = Array.from(sel.selectedOptions).map(o => parseInt(o.value));
+  // If "Acumulado" (0) selected, treat as all months
+  if (vals.includes(0) || vals.length === 0) {
+    PYG_curMes = [0];
+    // Deselect other options visually
+    Array.from(sel.options).forEach(o => o.selected = (o.value === '0'));
+  } else {
+    PYG_curMes = vals.sort((a,b)=>a-b);
+    // Deselect "Acumulado"
+    sel.options[0].selected = false;
+  }
+  PYG_updateBadge();
+  PYG_updateEvChart();
   PYG_render();
 }
 
@@ -1038,7 +1041,10 @@ function PYG_updateBadge() {
   const badge = document.getElementById('pyg_badge');
   if(!badge) return;
   const ccLbl = PYG_curCC==='TOTAL'?'Consolidado':PYG_curCC==='COMUNICACION'?'Comunicación':'Asuntos Públicos';
-  const mesLbl = PYG_curMes===0?'Acumulado':PYG_MN_ALL[PYG_curMes];
+  const isAll = PYG_curMes.includes(0) || PYG_curMes.length === 0;
+  const mesLbl = isAll ? 'Acumulado'
+    : PYG_curMes.length === 1 ? PYG_MN_ALL[PYG_curMes[0]]
+    : PYG_MNS[PYG_curMes[0]]+'–'+PYG_MNS[PYG_curMes[PYG_curMes.length-1]];
   badge.textContent = ccLbl+' · '+mesLbl;
   badge.style.background = PYG_curCC==='COMUNICACION'?'var(--gold-light)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue-light)':'var(--surface2)';
   badge.style.color = PYG_curCC==='COMUNICACION'?'var(--gold)':PYG_curCC==='ASUNTOS PUBLICOS'?'var(--blue)':'var(--text-2)';
@@ -1515,8 +1521,8 @@ function BVR_init() {
     <button class="chip fac-cc comm" onclick="FAC_setCC('COMUNICACION',this)">Comunicación</button>
     <button class="chip fac-cc aapp" onclick="FAC_setCC('ASUNTOS PUBLICOS',this)">Asuntos Públicos</button>
     <div style="width:1px;height:16px;background:var(--border);margin:0 6px"></div>
-    <select id="fac_mesSelect" onchange="FAC_setMes(+this.value)" style="font-size:11px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-family:'DM Mono',monospace;cursor:pointer">
-      <option value="0">Acumulado</option>
+    <select id="fac_mesSelect" multiple onchange="FAC_setMesMulti(this)" style="font-size:11px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-family:'DM Mono',monospace;cursor:pointer;min-width:110px;max-height:28px;transition:max-height .2s" onfocus="this.style.maxHeight='200px'" onblur="this.style.maxHeight='28px'" title="Ctrl+clic para seleccionar varios">
+      <option value="0" selected>Acumulado</option>
     </select>
     <select id="fac_clienteSelect" onchange="FAC_setCliente(this.value)" style="font-size:11px;padding:4px 8px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--surface);color:var(--text-2);font-family:'DM Mono',monospace;cursor:pointer;max-width:260px">
       <option value="">Todos los clientes</option>
@@ -1818,10 +1824,24 @@ function FAC_buildClientSelect() {
   });
 }
 
+function FAC_mesLabel() {
+  if (!Array.isArray(FAC_curMes) && FAC_curMes === 0) return 'Acumulado';
+  if (Array.isArray(FAC_curMes) && FAC_curMes.length === 0) return 'Acumulado';
+  const MNL={1:'Enero',2:'Febrero',3:'Marzo',4:'Abril',5:'Mayo',6:'Junio',7:'Julio',8:'Agosto',9:'Septiembre',10:'Octubre',11:'Noviembre',12:'Diciembre'};
+  const MNS={1:'Ene',2:'Feb',3:'Mar',4:'Abr',5:'May',6:'Jun',7:'Jul',8:'Ago',9:'Sep',10:'Oct',11:'Nov',12:'Dic'};
+  if (Array.isArray(FAC_curMes)) {
+    if (FAC_curMes.length === 1) return MNL[FAC_curMes[0]];
+    return MNS[FAC_curMes[0]]+'–'+MNS[FAC_curMes[FAC_curMes.length-1]];
+  }
+  return MNL[FAC_curMes] || 'Acumulado';
+}
+
 function FAC_filtered() {
   return FAC_RAW.filter(r => {
     if (FAC_curCC !== 'TOTAL' && r.grupo !== FAC_curCC) return false;
-    if (FAC_curMes !== 0 && r.mes !== FAC_curMes) return false;
+    if (Array.isArray(FAC_curMes)) {
+      if (!FAC_curMes.includes(r.mes)) return false;
+    } else if (FAC_curMes !== 0 && r.mes !== FAC_curMes) return false;
     if (FAC_curCliente && r.cliente !== FAC_curCliente) return false;
     return true;
   });
@@ -1835,7 +1855,7 @@ function FAC_renderKPIs() {
   const clientes = new Set(d.map(r=>r.cliente)).size;
   const MNL = {1:'Enero',2:'Febrero',3:'Marzo',4:'Abril'};
   document.getElementById('fac_kTotal').textContent = FAC_fmtD(total);
-  document.getElementById('fac_kTotalSub').textContent = FAC_curMes===0?'Acumulado Ene–Abr':MNL[FAC_curMes];
+  document.getElementById('fac_kTotalSub').textContent = FAC_mesLabel();
   document.getElementById('fac_kCom').textContent = FAC_fmtD(com);
   document.getElementById('fac_kComPct').textContent = total>0?(com/total*100).toFixed(1).replace('.',',')+'\u202f% del total':'A1 + A10';
   document.getElementById('fac_kAapp').textContent = FAC_fmtD(aapp);
@@ -1876,7 +1896,7 @@ function FAC_renderTopChart() {
     const r=d.find(x=>x.cliente===c);
     return r&&r.grupo==='COMUNICACION'?'rgba(122,92,26,0.65)':'rgba(26,63,107,0.65)';
   });
-  document.getElementById('fac_topLabel').textContent = FAC_curMes===0?'Acumulado':(MNL[FAC_curMes]||'Acumulado');
+  document.getElementById('fac_topLabel').textContent = FAC_mesLabel();
   if(FAC_topCh) FAC_topCh.destroy();
   FAC_topCh = new Chart(document.getElementById('fac_topChart'),{
     type:'bar',
@@ -1979,6 +1999,18 @@ function FAC_setCC(cc,btn){
   btn.classList.add('active');
   FAC_render();
 }
+function FAC_setMesMulti(sel) {
+  const vals = Array.from(sel.selectedOptions).map(o => parseInt(o.value));
+  if (vals.includes(0) || vals.length === 0) {
+    FAC_curMes = 0;
+    Array.from(sel.options).forEach(o => o.selected = (o.value === '0'));
+  } else {
+    FAC_curMes = vals;
+    sel.options[0].selected = false;
+  }
+  FAC_render();
+}
+
 function FAC_setMes(m){FAC_curMes=m;FAC_render();}
 function FAC_setCliente(c){FAC_curCliente=c;FAC_render();}
 
