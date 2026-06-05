@@ -406,15 +406,18 @@ const MONTHLY=[
 
 new Chart(document.getElementById('ccChart'),{
   type:'bar',
-  data:{labels:['Ene', 'Feb', 'Mar', 'Abr', 'May'],datasets:[{label:'Egreso México',data:[-15000, -20000, 0, -17007, -19000],
-    backgroundColor:data.map(v=>v<0?CRED:CGREEN),
-    borderRadius:4}]},
+  data:{labels:['Ene','Feb','Mar','Abr','May'],datasets:[{
+    label:'Egreso México',
+    data:[-15000,-20000,0,-17007,-19000],
+    backgroundColor:['Ene','Feb','Mar','Abr','May'].map((_,i)=>[-15000,-20000,0,-17007,-19000][i]<0?CRED:CGREEN),
+    borderRadius:4
+  }]},
   options:{
     responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'$'+Math.abs(c.raw).toLocaleString('es-EC')}}},
     scales:{
-      x:{grid:{display:false},ticks:{color:TC}},
-      y:{grid:{color:GC},ticks:{color:TC,callback:v=>'$'+Math.abs(v/1000).toFixed(0)+'k'}}
+      x:{grid:{display:false},ticks:{color:TC,font:{size:10}}},
+      y:{grid:{color:GC},ticks:{color:TC,font:{size:10},callback:v=>'$'+Math.abs(v/1000).toFixed(0)+'k'},border:{display:false}}
     }
   }
 });
