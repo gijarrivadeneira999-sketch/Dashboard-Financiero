@@ -224,9 +224,9 @@ table.marg tr:last-child td{border-bottom:none;font-weight:600;color:var(--text)
           <th>CC</th><th class="r">Ingresos</th><th class="r">Egresos</th><th class="r">Flujo</th>
         </tr></thead>
         <tbody>
-          <tr><td>MEXICO</td><td class="r">$0.00</td><td class="r">$52,007.00</td><td class="r neg">($52,007.00)</td></tr>
-          <tr><td>A2</td><td class="r">$363,417.44</td><td class="r">$396,432.36</td><td class="r neg">($33,014.92)</td></tr>
-          <tr><td>A1</td><td class="r">$438,525.33</td><td class="r">$409,645.39</td><td class="r pos">$28,879.94</td></tr>
+          <tr><td>MEXICO</td><td class="r">$0.00</td><td class="r">$71,007.00</td><td class="r neg">($71,007.00)</td></tr>
+          <tr><td>A2</td><td class="r">$493,838.48</td><td class="r">$514,144.72</td><td class="r neg">($20,306.24)</td></tr>
+          <tr><td>A1</td><td class="r">$520,526.80</td><td class="r">$486,401.07</td><td class="r pos">$34,125.73</td></tr>
           <tr class="tfoot-row"><td>Total</td><td class="r">$801,942.77</td><td class="r">$858,084.76</td><td class="r neg">($56,141.99)</td></tr>
         </tbody>
       </table>
@@ -405,7 +405,7 @@ const MONTHLY=[
 
 new Chart(document.getElementById('ccChart'),{
   type:'bar',
-  data:{labels:['MEXICO','A2','A1'],datasets:[{label:'Flujo',data:[-52007,-33015,28880],
+  data:{labels:['MEXICO','A2','A1'],datasets:[{label:'Flujo',data:[-71007,-20306,34126],
     backgroundColor:[CRED,CRED,CGREEN],borderRadius:4,borderSkipped:false}]},
   options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtChg(c.raw)}}},
